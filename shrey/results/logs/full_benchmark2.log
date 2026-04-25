@@ -1,0 +1,161 @@
+============================================================
+  FJM Full Mode Benchmark
+  6 runs: ordered / journal / writeback  ×  std / fjm
+  Device: /dev/sdb (5.1G)    Journal: 64MB
+============================================================
+
+[1/5] Checking prerequisites...
+  fio:       OK (fio-3.36)
+  blktrace:  OK
+  device:    OK (/dev/sdb)
+  workload:  OK (/home/user/Wal Simulation/wal_workload.fio)
+
+[2/5] Verifying device...
+NAME
+     SIZE FSTYPE MOUNTPOINT
+sdb  5.1G ext4
+
+[3/5] Setting up results directory...
+  Results: /home/user/Wal Simulation/fjm_full_results/20260425_095025
+  debugfs:   OK
+
+[4/5] Running 6 benchmarks...
+      Each reformats the device and writes 100MB.
+
+
+------------------------------------------------------------
+  Run: ordered_std  (mount -t ext4_mod -o data=ordered)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=2909KiB/s][w=363 IOPS][eta 00m:00s]
+  CPU  0:               115631 events,     5421 KiB data
+  CPU  1:                28171 events,     1321 KiB data
+  CPU  2:                86569 events,     4058 KiB data
+  CPU  3:                94099 events,     4411 KiB data
+  Total:                324470 events (dropped 0),    15210 KiB data
+  FJM events — Freed: 0
+0  Committed: 0
+0
+  ✓ ordered_std complete.
+
+------------------------------------------------------------
+  Run: journal_std  (mount -t ext4_mod -o data=journal)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=2933KiB/s][w=366 IOPS][eta 00m:00s]
+  CPU  0:                10943 events,      513 KiB data
+  CPU  1:                51234 events,     2402 KiB data
+  CPU  2:                79924 events,     3747 KiB data
+  CPU  3:               259174 events,    12149 KiB data
+  Total:                401275 events (dropped 0),    18810 KiB data
+  FJM events — Freed: 0
+0  Committed: 0
+0
+  ✓ journal_std complete.
+
+------------------------------------------------------------
+  Run: writeback_std  (mount -t ext4_mod -o data=writeback)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=3099KiB/s][w=387 IOPS][eta 00m:00s]
+  CPU  0:                52294 events,     2452 KiB data
+  CPU  1:                76465 events,     3585 KiB data
+  CPU  2:               141998 events,     6657 KiB data
+  CPU  3:                53706 events,     2518 KiB data
+  Total:                324463 events (dropped 0),    15210 KiB data
+  FJM events — Freed: 0
+0  Committed: 0
+0
+  ✓ writeback_std complete.
+
+------------------------------------------------------------
+  Run: ordered_fjm  (mount -t ext4_mod -o data=ordered,fjm)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=2362KiB/s][w=295 IOPS][eta 00m:00s]
+  CPU  0:                60027 events,     2814 KiB data
+  CPU  1:                91069 events,     4269 KiB data
+  CPU  2:                88322 events,     4141 KiB data
+  CPU  3:                85318 events,     4000 KiB data
+  Total:                324736 events (dropped 0),    15223 KiB data
+  FJM events — Freed: 819  Committed: 0
+0
+  ✓ ordered_fjm complete.
+
+------------------------------------------------------------
+  Run: journal_fjm  (mount -t ext4_mod -o data=journal,fjm)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=1451KiB/s][w=181 IOPS][eta 00m:00s]
+  CPU  0:               149371 events,     7002 KiB data
+  CPU  1:                74401 events,     3488 KiB data
+  CPU  2:               121506 events,     5696 KiB data
+  CPU  3:                96670 events,     4532 KiB data
+  Total:                441948 events (dropped 0),    20717 KiB data
+  FJM events — Freed: 545  Committed: 0
+0
+  ✓ journal_fjm complete.
+
+------------------------------------------------------------
+  Run: writeback_fjm  (mount -t ext4_mod -o data=writeback,fjm)
+------------------------------------------------------------
+  Formatting /dev/sdb (journal=64MB)...
+  Format done.
+  Mounted OK.
+  Free space: 4761MB
+  Running fio (100MB)...
+=== sdb ===1): [W(1)][100.0%][w=1328KiB/s][w=166 IOPS][eta 00m:00s]
+  CPU  0:                81779 events,     3834 KiB data
+  CPU  1:                88820 events,     4164 KiB data
+  CPU  2:                77515 events,     3634 KiB data
+  CPU  3:                76641 events,     3593 KiB data
+  Total:                324755 events (dropped 0),    15223 KiB data
+  FJM events — Freed: 817  Committed: 0
+0
+  ✓ writeback_fjm complete.
+
+============================================================
+[5/5] Results Comparison
+============================================================
+
+  RUN                  BW(KB/s)       IOPS    P99(ms)  Logical(MB)   Phys(MB)        WAF
+  ------------------   --------       ----    -------  -----------   --------        ---
+  ordered_std              2803      350.4      0.098          100      250.0      2.50x
+  ordered_fjm              2706      338.3      0.122          100      250.0      2.50x
+  journal_std              3062      382.8      0.123          100      350.0      3.50x
+  journal_fjm              1947      243.4      0.561          100      362.8      3.62x
+  writeback_std            2714      339.4      0.059          100      250.0      2.50x
+  writeback_fjm            2275      284.4      0.129          100      250.0      2.50x
+
+------------------------------------------------------------
+  FJM Checkpoint Events (only meaningful for FJM runs)
+------------------------------------------------------------
+  ordered_fjm         Freed=819    Committed=0
+0    IndexBlocks=N/A
+  journal_fjm         Freed=545    Committed=0
+0    IndexBlocks=N/A
+  writeback_fjm       Freed=817    Committed=0
+0    IndexBlocks=N/A
+
+Raw results: /home/user/Wal Simulation/fjm_full_results/20260425_095025
+Done.

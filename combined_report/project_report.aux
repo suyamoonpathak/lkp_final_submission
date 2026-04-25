@@ -1,0 +1,81 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Workload Characterization (Milan)}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Why characterization first}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Headline numbers (WAL, 1 thread, 100 MB, fsync per write, 4 KiB)}{2}{subsection.2.2}\protected@file@percent }
+\citation{atc24-fc}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}What this told the group}{3}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Concurrent workload}{3}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}How to reproduce}{3}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Suyamoon's Four Candidates: Overview}{3}{section.3}\protected@file@percent }
+\citation{atc24-fc}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Candidates 1 and 2: Did Not Measure}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}C1: fast-commit barrier deferral}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}C2: async bitmap prefetch completion}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lesson.}{4}{lstnumber.-3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Candidate 3: Fast Commit Support for Inline xattrs}{5}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Intuition}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Code analysis}{5}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Design and implementation}{5}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Correctness}{6}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Results}{6}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{VM (VirtualBox, 11th Gen Intel Core i7-11800H, 4 cores, 5.7 GiB RAM; 256 MB loop fs with \texttt  {-O fast\_commit}; 5000 \texttt  {fsetxattr}+\texttt  {fsync} on a single inline-sized value).}{6}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Bare-metal (11th Gen Intel Core i3-1115G4, 4 cores, 7.5 GiB RAM, real SATA SSD; 3 repeats).}{6}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Candidate 4: Fast Commit Support for fallocate Range Operations}{6}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Intuition}{6}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Characterization first}{6}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Code analysis}{7}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Design and implementation}{7}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Replay correctness.}{7}{lstnumber.-7.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Correctness}{8}{subsection.6.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Results}{8}{subsection.6.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{VM (1000 ops + per-op fsync, three runs per mode).}{8}{subsection.6.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Bare-metal (i3-1115G4, real SATA SSD; 3 repeats).}{8}{subsection.6.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Candidate 5: Lockless CAS for jbd2\_log\_wait\_commit (Sahil)}{8}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Analyzing the lock latency of JBD2}{9}{subsection.7.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}The Native ext4 Implementation (Problematic)}{9}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Identifying lock contention time}{9}{subsection.7.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Sample dmesg output from the trace module on rmmod.}{9}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Mitigating lock contention with CAS synchronization}{10}{subsection.7.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Optimized CAS lockless implementation}{10}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Benchmark evaluation and thread scaling}{11}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Reproduction}{12}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Candidate 6: Fragmented Journal Map (FJM) for ext4 (Shrey)}{12}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Conventional vs.\ fragmented journaling}{12}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Maintaining the journal and circular transaction sequence}{12}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{In-memory tracking.}{12}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Circular enforcement via on-disk indexes.}{12}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Fragmented block occupation}{13}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Journal space efficiency}{13}{subsection.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Redundancy of credit-based reservation}{13}{subsection.8.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.6}Experiments}{13}{subsection.8.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Crash recovery.}{14}{subsection.8.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.7}Reproduction}{14}{subsection.8.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{14}{section.9}\protected@file@percent }
+\bibcite{ext4-design}{1}
+\bibcite{ijournaling}{2}
+\bibcite{optfs}{3}
+\bibcite{atc24-fc}{4}
+\bibcite{cjfs}{5}
+\bibcite{syncsync}{6}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Artifact Evaluation}{16}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Artifact directory structure}{16}{subsection.A.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Setup}{16}{subsection.A.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hardware.}{16}{subsection.A.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Operating system.}{16}{subsection.A.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Software dependencies.}{16}{subsection.A.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Kernel build.}{16}{lstnumber.-11.5}\protected@file@percent }
+\gdef \LT@i {\LT@entry 
+    {1}{17.38092pt}\LT@entry 
+    {1}{125.81102pt}\LT@entry 
+    {1}{117.2751pt}\LT@entry 
+    {1}{219.39566pt}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Features supported}{17}{subsection.A.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Findings during evaluation.}{17}{subsection.A.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Assumptions and unsupported}{17}{subsection.A.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Getting started (within 30 minutes)}{17}{subsection.A.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Detailed evaluation}{17}{subsection.A.6}\protected@file@percent }
+\gdef \@abspage@last{19}

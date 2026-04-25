@@ -1,0 +1,106 @@
+# wal_workload.fio
+# Simulates a Write-Ahead Log (WAL) workload -- the most journal-intensive
+# I/O pattern possible. Every write is immediately forced to disk with
+# fdatasync(), which flushes data and data-retrieval metadata to disk,
+# replicating the durability guarantee of database transaction commits
+# (this is the exact syscall PostgreSQL and MySQL use for WAL durability).
+#
+# Save this file to: ~/wal_workload.fio
+# Do NOT run this directly -- it is called by run_wal_analysis.sh
+
+[global]
+# ── Where fio writes its test files ──────────────────────────────────────────
+# This is overridden by the calling script using --directory=
+# so that we can point it at the correct mount point.
+# We define it here as a fallback default.
+directory=/media/milan-roy/test_ext4
+
+# ── Duration control ──────────────────────────────────────────────────────────
+# time_based=0: stop as soon as fio has written exactly 'size' bytes.
+# This guarantees all four modes (ordered, journal, writeback, no-journal)
+# write identical logical bytes, making blktrace physical byte counts
+# directly comparable for WAF calculation.
+# journal mode will take longer to complete but WAF numbers are meaningful.
+time_based=0
+
+# ── Concurrency ───────────────────────────────────────────────────────────────
+# numjobs=1: single worker thread, matching how real databases write WAL.
+# Both PostgreSQL and MySQL/InnoDB use a single dedicated WAL writer process --
+# the log is strictly append-only and serialized, so multiple concurrent
+# writers would not be realistic. Single-threaded also gives the cleanest
+# per-commit latency numbers without JBD2 group-commit batching effects.
+numjobs=1
+
+# ── Output ────────────────────────────────────────────────────────────────────
+# group_reporting=1: emit a single aggregate result block even with numjobs=1.
+# Kept for forward compatibility -- if numjobs is raised later, stats will
+# still be merged into one summary line for easy cross-mode comparison.
+group_reporting=1
+
+[wal-simulation]
+# ── I/O pattern ───────────────────────────────────────────────────────────────
+# rw=write: sequential writes, always moving forward through the file.
+# Real WAL logs are append-only by design -- you never go back and modify
+# an old log entry, you only add new ones at the end. This matches that.
+rw=write
+
+# ── Block size ────────────────────────────────────────────────────────────────
+# bs=4k: each individual write is exactly 4 kilobytes.
+# 4KB is both the standard Linux memory page size and the typical size
+# of a database log entry. Using 4k means each write maps to exactly one
+# page in the page cache and one block in the filesystem -- clean and realistic.
+bs=8k
+
+# ── Working set size ──────────────────────────────────────────────────────────
+# size=200m: write exactly 200MB of application data per mode.
+# Fixed size (not time-based) ensures all modes write identical logical bytes,
+# making blktrace physical byte counts directly comparable for WAF isolation.
+# 200MB exceeds the typical ext4 journal size (128MB), so journal mode
+# fills and checkpoints the journal at least once -- enough to capture
+# steady-state checkpoint behaviour in the WAF measurement.
+size=100m
+
+# ── I/O submission method ─────────────────────────────────────────────────────
+# ioengine=sync: use normal blocking write() system calls.
+# This is the most realistic simulation of how real applications write --
+# the thread calls write(), the OS handles it, and the thread waits for
+# confirmation before proceeding. Contrast this with async I/O engines
+# like libaio which allow many writes in flight simultaneously. sync is
+# what databases, log systems, and most applications actually use.
+ioengine=sync
+direct=0
+buffered=1
+lat_percentiles=1
+iodepth=1
+# ── The single most important parameter for this workload ─────────────────────
+# fdatasync=1: call fdatasync() after EVERY single 4KB write.
+#
+# Without fdatasync, when your application calls write(), the OS accepts the
+# data into a memory buffer (the page cache) and returns immediately. The data
+# is not on disk yet -- it sits in RAM and the OS flushes it lazily at some
+# point in the future. This is fast, but a crash can lose buffered data.
+#
+# fdatasync() changes everything. It tells the OS: "do not return to me until
+# every byte I have written is physically on disk."
+# The OS must:
+#   1. Flush all dirty data pages for this file to their final disk location
+#   2. Commit data-retrieval metadata (file size) as a journal transaction
+#   3. Wait for both the data write and the journal commit to complete
+#   4. Only then return to the application
+#
+# Note: fdatasync() differs from fsync() in one key way: fdatasync() skips
+# flushing metadata that is NOT needed to retrieve the data (e.g. mtime,
+# atime). fsync() flushes the full inode unconditionally. fdatasync() is what
+# PostgreSQL and MySQL actually use for WAL commits -- it is the correct
+# syscall to benchmark for database durability workloads.
+#
+# The result: every single 4KB write becomes a synchronous journal commit.
+# There is no batching, no coalescing, no shortcuts. Each write forces JBD2
+# to confirm data is on disk before the next write can begin.
+# This is the worst-case scenario for journaling overhead and exactly what
+# makes WAL workloads so revealing about journal commit performance.
+#
+# The difference between fdatasync=1 and fdatasync=0 can be 10-50x in
+# throughput depending on hardware. That gap IS the cost of durability.
+#fdatasync=1
+fsync=1

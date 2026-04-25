@@ -1,0 +1,65 @@
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 2685a4d..9951a0d 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -116,6 +116,12 @@ config FILE_LOCKING
+           for filesystems like NFS and for the flock() system
+           call. Disabling this option saves about 11k.
+ 
++config EXT4_MOD_FS
++    tristate "Ext4 MOD filesystem"
++    depends on BLOCK
++    select JBD2
++
++
+ source "fs/crypto/Kconfig"
+ 
+ source "fs/verity/Kconfig"
+diff --git a/fs/Makefile b/fs/Makefile
+index 4dea178..879bdc4 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -137,3 +137,4 @@ obj-$(CONFIG_EFIVAR_FS)		+= efivarfs/
+ obj-$(CONFIG_EROFS_FS)		+= erofs/
+ obj-$(CONFIG_VBOXSF_FS)		+= vboxsf/
+ obj-$(CONFIG_ZONEFS_FS)		+= zonefs/
++obj-$(CONFIG_EXT4_MOD_FS)       += ext4_mod/
+diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
+index 2696f43..ebf2db5 100644
+--- a/fs/jbd2/journal.c
++++ b/fs/jbd2/journal.c
+@@ -853,6 +853,14 @@ EXPORT_SYMBOL(jbd2_complete_transaction);
+ int jbd2_journal_next_log_block(journal_t *journal, unsigned long long *retp)
+ {
+ 	unsigned long blocknr;
++	
++	if (journal->j_alloc_block_callback) {
++		unsigned long long rel_blk;
++		if (journal->j_alloc_block_callback(journal, &rel_blk) == 0) {
++			blocknr = (unsigned long)rel_blk;
++			return jbd2_journal_bmap(journal, blocknr, retp);
++		}
++	}
+ 
+ 	write_lock(&journal->j_state_lock);
+ 	J_ASSERT(journal->j_free > 1);
+diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
+index 0b72423..03e4e8e 100644
+--- a/include/linux/jbd2.h
++++ b/include/linux/jbd2.h
+@@ -1285,6 +1285,15 @@ struct journal_s
+ 	struct lockdep_map	j_trans_commit_map;
+ #endif
+ 
++	/**
++	 * @j_alloc_block_callback:
++	 *
++	 * Ext4 Fragmented Journal Map (FJM) allocator callback.
++	 */
++	int (*j_alloc_block_callback)(struct journal_s *journal,
++				      unsigned long long *retp);
++
++
+ 	/**
+ 	 * @j_fc_cleanup_callback:
+ 	 *

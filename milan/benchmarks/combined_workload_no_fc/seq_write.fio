@@ -1,0 +1,62 @@
+# seq_write.fio
+# Simulates a large sequential write workload -- representative of bulk data
+# ingestion, log archival, backup writes, and streaming data pipelines.
+# Writes are buffered (no per-write sync) so the OS page cache absorbs bursts
+# and flushes asynchronously, exercising the filesystem's ability to coalesce
+# large writes into efficient I/O operations.
+#
+# Do NOT run this directly -- it is called by run_combined_analysis.sh
+
+[global]
+# ── Where fio writes its test files ──────────────────────────────────────────
+# Overridden by the calling script using --directory=
+directory=/media/milan-roy/test_ext4
+
+# ── Duration control ──────────────────────────────────────────────────────────
+# time_based=1 + runtime: run for a fixed wall-clock duration so this job
+# runs for the exact same window as wal_workload.fio, keeping contention fair.
+time_based=1
+runtime=120
+
+# ── Concurrency ───────────────────────────────────────────────────────────────
+numjobs=1
+
+# ── Output ────────────────────────────────────────────────────────────────────
+# group_reporting=1 in [global] aggregates all numjobs workers into a single
+# result block in the JSON, giving exactly one entry per fio invocation.
+group_reporting=1
+
+# ── I/O submission ────────────────────────────────────────────────────────────
+ioengine=sync
+direct=0
+buffered=1
+lat_percentiles=1
+iodepth=1
+
+[seq-write]
+# ── I/O pattern ───────────────────────────────────────────────────────────────
+# rw=write: purely sequential writes, always moving forward through the file.
+rw=write
+
+# ── Block size ────────────────────────────────────────────────────────────────
+# bs=1m: each individual write is exactly 1 megabyte.
+bs=1m
+
+# ── Loop file size ────────────────────────────────────────────────────────────
+# size=10g: fio creates a 10GB file per job and writes through it for runtime.
+# Large enough that a single pass takes well over 120s at realistic NVMe
+# speeds, so fio writes through fresh sequential space without looping back.
+# 10g × 4 jobs = 40GB total allocation for this section.
+size=10g
+
+# ── Filename ──────────────────────────────────────────────────────────────────
+# Explicit prefix keeps seq test files separate from WAL test files so the
+# two concurrent fio processes do not collide on the same filenames.
+filename_format=seq.$jobnum
+
+# ── No per-write sync ─────────────────────────────────────────────────────────
+# fsync=0: no fsync() after each write.
+# The OS page cache coalesces dirty pages and flushes them in large batches.
+# JBD2 still commits metadata at regular intervals but data writes are not
+# serialised behind journal commits -- the high-throughput end of the spectrum.
+fsync=0

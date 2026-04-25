@@ -1,0 +1,50 @@
+Project Group Name: MTech Rocks
+
+Members:
+  - Milan Roy        (241110042) -- <contribution %>
+  - Sahil Basia      (241110061) -- <contribution %>
+  - Shrey Sharma     (251110068) -- <contribution %>
+  - Suyamoon Pathak  (241110091) -- <contribution %>
+
+Declaration:
+"All project members own and give their consent on everything submitted as
+part of this submission. The work done and submitted in the project are
+done by the members of the project group mentioned above. Any use of
+external sources such as source code from other repositories, GPT
+generated source code/documentation/Figures etc. are properly attributed."
+
+Attributions (external sources used):
+  - Linux 6.1.4 kernel source, downloaded from
+    https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.4.tar.xz .
+    Suyamoon's patches (suyamoon/fc-inline-xattr.patch and
+    suyamoon/fc-fallocate-range.patch) modify fs/ext4/xattr.c,
+    fs/ext4/fast_commit.c, and fs/ext4/extents.c under the kernel's
+    existing GPL v2 license. Sahil's out-of-tree kernel module
+    (sahil/module/jbd2_trace.c) hooks into JBD2 via the kernel's
+    public kretprobes API, also under GPL v2. Shrey's two patches
+    (shrey/patches/First.patch, Second.patch) modify
+    fs/jbd2/journal.c, fs/jbd2/transaction.c, and
+    include/linux/jbd2.h to add allocator and free-txn callback
+    hooks; his out-of-tree ext4_tracker module
+    (shrey/module/ext4_tracker.tar.gz) is also under GPL v2.
+  - The ATC 2024 FastCommit paper by Shirwadkar, Kadekodi, and Ts'o
+    was referenced for design context and its identification of the
+    xattr coverage gap that Candidate 3 closes.
+  - The CJFS (FAST 2023), iJournaling (ATC 2017), and Optimistic
+    Crash Consistency (SOSP 2013) papers were referenced as related
+    work in the report.
+  - xfstests from
+    https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+    was used unmodified for correctness evaluation.
+  - The fio benchmarking tool (https://fio.readthedocs.io) was used
+    unmodified across multiple members' benchmark scripts.
+  - The bpftrace tracing tool (https://bpftrace.org) was used
+    unmodified by Milan to instrument JBD2 tracepoints during the
+    workload characterization.
+  - sysbench, fs_mark, and dbench were used unmodified by Sahil for
+    the multi-thread scaling matrix.
+  - AI assistance (Claude) was used by individual members for
+    brainstorming patch ideas, drafting benchmark scripts, and
+    proofreading the report. All final patch code, benchmark
+    scripts, and prose were reviewed, tested, and approved by the
+    project members before submission.

@@ -1,0 +1,107 @@
+============================================================
+  FJM WAL Benchmark (data=journal mode)
+  Device: /dev/sdb  (5.1G)
+============================================================
+
+[1/5] Checking prerequisites...
+  fio:           OK (fio-3.36)
+  blktrace:      OK
+  device:        OK (/dev/sdb)
+  workload:      OK (/home/user/Wal Simulation/wal_workload.fio)
+
+[2/5] Verifying device...
+NAME
+     SIZE FSTYPE MOUNTPOINT
+sdb  5.1G ext4
+  Device size: 5.1G
+
+[3/5] Setting up results directory...
+  Results: /home/user/Wal Simulation/fjm_benchmark_results/20260425_092717
+  debugfs: OK
+
+[4/5] Running benchmarks...
+
+This script runs two modes:
+  1. standard - plain ext4 (ext4) with data=journal
+  2. fjm      - FJM-enabled (ext4_mod) with data=journal,fjm
+
+
+------------------------------------------------------------
+  Benchmark: standard (data=journal)
+------------------------------------------------------------
+  Formatting /dev/sdb with ext4 (journal=64MB)...
+  Format done.
+  Mounting: mount -t ext4_mod -o data=journal /dev/sdb /mnt/test_ext4
+  Mounted successfully.
+  Journal size: 64M
+  Free space: 4761MB
+  Dropping page cache...
+  Starting blktrace...
+  Running fio WAL workload (100MB, fsync after every write)...
+  This will take a few minutes in data=journal mode...
+=== sdb ===1): [W(1)][100.0%][w=2781KiB/s][w=347 IOPS][eta 00m:00s]
+  CPU  0:                74985 events,     3515 KiB data
+  CPU  1:               162111 events,     7599 KiB data
+  CPU  2:               138285 events,     6483 KiB data
+  CPU  3:                25923 events,     1216 KiB data
+  Total:                401304 events (dropped 0),    18812 KiB data
+  blktrace: physical write bytes saved.
+  FJM: Freed messages=0  Committed messages=0
+  dmesg: FJM stats saved to fjm_dmesg_standard.txt
+  Unmounted.
+  ✓ standard benchmark complete.
+
+------------------------------------------------------------
+  Benchmark: fjm (data=journal)
+------------------------------------------------------------
+  Formatting /dev/sdb with ext4 (journal=64MB)...
+  Format done.
+  Mounting: mount -t ext4_mod -o data=journal,fjm /dev/sdb /mnt/test_ext4
+  Mounted successfully.
+  Journal size: 64M
+  Free space: 4761MB
+  Dropping page cache...
+  Starting blktrace...
+  Running fio WAL workload (100MB, fsync after every write)...
+  This will take a few minutes in data=journal mode...
+=== sdb ===1): [W(1)][100.0%][w=2562KiB/s][w=320 IOPS][eta 00m:00s]
+  CPU  0:               101174 events,     4743 KiB data
+  CPU  1:                93959 events,     4405 KiB data
+  CPU  2:               122920 events,     5762 KiB data
+  CPU  3:               120524 events,     5650 KiB data
+  Total:                438577 events (dropped 0),    20559 KiB data
+  blktrace: physical write bytes saved.
+  FJM: Freed messages=546  Committed messages=0
+  dmesg: FJM stats saved to fjm_dmesg_fjm.txt
+  Unmounted.
+  ✓ fjm benchmark complete.
+
+============================================================
+[5/5] Results Summary
+============================================================
+
+  ┌─ standard ─────────────────────────────────────
+  │  Bandwidth:        2740 KB/s
+  │  IOPS:             342.5
+  │  Latency p99:      929.79 ms
+  │  Logical written:  100MB
+  │  Physical written: 350.0MB
+  │  WAF:              3.50x
+  └────────────────────────────────────────────────
+
+  ┌─ fjm ─────────────────────────────────────
+  │  Bandwidth:        2179 KB/s
+  │  IOPS:             272.5
+  │  Latency p99:      610.3 ms
+  │  Logical written:  100MB
+  │  Physical written: 362.1MB
+  │  WAF:              3.62x
+  │  FJM Freed events: 3276
+  └────────────────────────────────────────────────
+
+Raw results saved to: /home/user/Wal Simulation/fjm_benchmark_results/20260425_092717
+
+To re-run analysis only:
+  python3 '/home/user/Wal Simulation/analyse_wal_results.py' /home/user/Wal Simulation/fjm_benchmark_results/20260425_092717
+
+Done.

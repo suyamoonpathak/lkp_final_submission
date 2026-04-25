@@ -1,0 +1,80 @@
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 9951a0d02..d046fcf02 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -121,6 +121,11 @@ config EXT4_MOD_FS
+     depends on BLOCK
+     select JBD2
+ 
++config EXT4_TRACKER_FS
++    tristate "Ext4 TRACKER filesystem"
++    depends on BLOCK
++    select JBD2
++
+ 
+ source "fs/crypto/Kconfig"
+ 
+diff --git a/fs/Makefile b/fs/Makefile
+index 879bdc42b..500157680 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -138,3 +138,4 @@ obj-$(CONFIG_EROFS_FS)		+= erofs/
+ obj-$(CONFIG_VBOXSF_FS)		+= vboxsf/
+ obj-$(CONFIG_ZONEFS_FS)		+= zonefs/
+ obj-$(CONFIG_EXT4_MOD_FS)       += ext4_mod/
++obj-$(CONFIG_EXT4_TRACKER_FS)   += ext4_tracker/
+diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
+index ebf2db5cb..f5177ebe6 100644
+--- a/fs/jbd2/journal.c
++++ b/fs/jbd2/journal.c
+@@ -853,7 +853,8 @@ EXPORT_SYMBOL(jbd2_complete_transaction);
+ int jbd2_journal_next_log_block(journal_t *journal, unsigned long long *retp)
+ {
+ 	unsigned long blocknr;
+-	
++
++	// Fragmented journal block allocation here	
+ 	if (journal->j_alloc_block_callback) {
+ 		unsigned long long rel_blk;
+ 		if (journal->j_alloc_block_callback(journal, &rel_blk) == 0) {
+diff --git a/fs/jbd2/transaction.c b/fs/jbd2/transaction.c
+index 6a404ac1c..e88285f43 100644
+--- a/fs/jbd2/transaction.c
++++ b/fs/jbd2/transaction.c
+@@ -59,6 +59,10 @@ void jbd2_journal_free_transaction(transaction_t *transaction)
+ {
+ 	if (unlikely(ZERO_OR_NULL_PTR(transaction)))
+ 		return;
++	
++	if (transaction->t_journal && transaction->t_journal->j_free_txn_callback)
++		transaction->t_journal->j_free_txn_callback(transaction->t_journal, transaction->t_tid);
++	
+ 	kmem_cache_free(transaction_cache, transaction);
+ }
+ 
+diff --git a/include/linux/jbd2.h b/include/linux/jbd2.h
+index 03e4e8ee6..f850f5ebe 100644
+--- a/include/linux/jbd2.h
++++ b/include/linux/jbd2.h
+@@ -1287,13 +1287,20 @@ struct journal_s
+ 
+ 	/**
+ 	 * @j_alloc_block_callback:
+-	 *
++	 * Added this callback function for Fragmented Journal Map implementation
+ 	 * Ext4 Fragmented Journal Map (FJM) allocator callback.
+ 	 */
+ 	int (*j_alloc_block_callback)(struct journal_s *journal,
+ 				      unsigned long long *retp);
+ 
+ 
++	/**
++	 * @j_free_txn_callback:
++	 * Filesystem callback invoked before JBD2 frees a transaction.
++	 */
++	void (*j_free_txn_callback)(struct journal_s *journal, tid_t tid);
++
++
+ 	/**
+ 	 * @j_fc_cleanup_callback:
+ 	 *

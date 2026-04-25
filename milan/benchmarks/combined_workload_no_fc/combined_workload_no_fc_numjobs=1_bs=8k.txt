@@ -1,0 +1,212 @@
+
+==============================================================================================================
+  COMBINED WORKLOAD AVERAGED RESULTS  (N=5 runs, mean ± stddev)
+  WAL: 4×1GB · 8KB · fsync/write   +   Seq: 4×10GB · 1MB · buffered
+==============================================================================================================
+
+==============================================================================================================
+  WAL WORKLOAD  (wal-simulation · fsync after every 8KB write)
+==============================================================================================================
+
+  TABLE T1 [WAL]: Throughput  --  WAL (fsync per write)  (mean ± stddev)
+  Mode                          IOPS               Bandwidth          Data Written           Runtime
+  ------------------------------------------------------------------------------------------------------------
+  ordered                        2±1           0.02±0.00 MB/s          0.00±0.00 GB    121.33±0.73s
+  journal                        3±0           0.03±0.00 MB/s          0.00±0.00 GB    120.34±0.35s
+  writeback                      2±1           0.01±0.01 MB/s          0.00±0.00 GB    121.22±0.82s
+  nojournal                      3±0           0.02±0.00 MB/s          0.00±0.00 GB    121.34±1.40s
+
+  TABLE T2 [WAL]: I/O Latency  --  WAL  (mean ± stddev)
+  Mode                         Avg                 p50                 p99               p99.9              p99.99
+  ------------------------------------------------------------------------------------------------------------
+  ordered          518.65±151.05ms       37.02±13.87ms   8845.03±3225.35ms  11549.84±3351.77ms  11549.84±3351.77ms
+  journal            288.25±9.23ms        26.74±2.30ms     2032.56±53.52ms    2802.63±401.52ms    2802.63±401.52ms
+  writeback        598.51±217.15ms       33.17±12.12ms   8737.06±2052.86ms  15277.86±1833.84ms  15277.86±1833.84ms
+  nojournal         402.09±43.66ms         8.98±5.08ms    7106.92±463.95ms  11294.64±1400.29ms  11294.64±1400.29ms
+
+  TABLE T3 [WAL]: Performance Overhead vs nojournal  --  WAL  (mean values)
+  Mode            IOPS penalty    Lat overhead    p99 overhead
+  ------------------------------------------------------------------------------------------------------------
+  ordered               18.1%          29.0%          24.5%
+  journal              -38.3%         -28.3%         -71.4%
+  writeback             23.1%          48.9%          22.9%
+  nojournal           baseline        baseline        baseline
+
+  TABLE T4 [WAL]: IOPS Variability  --  WAL  (mean ± stddev)
+  Mode                       Min               Max           Std Dev          CV (%)
+  ------------------------------------------------------------------------------------------------------------
+  ordered                    2±0            130±10        17.97±1.97    873.3±95.6%
+  journal                    2±0              18±6         2.52±0.18     72.6±5.2%
+  writeback                  2±0            133±25        20.11±4.55   1042.0±235.6%
+  nojournal                  2±0           242±100       39.66±12.62   1579.3±502.6%
+
+  TABLE T5 [WAL]: Latency Breakdown -- write() vs fsync()  --  WAL  (mean ± stddev)
+  Mode                     write() avg             fsync() avg     fsync share
+  ------------------------------------------------------------------------------------------------------------
+  ordered        14619.32±32469.51 µs  504030.10±131290.74 µs          97.2%
+  journal        195261.06±4595.05 µs    92992.17±5722.46 µs          32.3%
+  writeback      14178.54±12519.17 µs  584332.41±214894.89 µs          97.6%
+  nojournal         672.52±1334.52 µs  401412.87±43550.45 µs          99.8%
+
+  TABLE T6 [WAL]: CPU & Kernel Efficiency  --  WAL  (mean ± stddev)
+  Mode                   sys_cpu           usr_cpu         total_cpu     ctx sw / IO
+  ------------------------------------------------------------------------------------------------------------
+  ordered            0.02±0.01%       0.00±0.00%       0.02±0.01%           2.69
+  journal            0.59±0.04%       0.01±0.00%       0.60±0.04%           4.82
+  writeback          0.02±0.01%       0.00±0.00%       0.02±0.01%           2.55
+  nojournal          0.03±0.00%       0.00±0.00%       0.03±0.00%           6.43
+
+==============================================================================================================
+  SEQUENTIAL WRITE WORKLOAD  (seq-write · 1MB blocks · buffered)
+==============================================================================================================
+
+  TABLE T1 [SEQ]: Throughput  --  Sequential Write (buffered)  (mean ± stddev)
+  Mode                          IOPS               Bandwidth          Data Written           Runtime
+  ------------------------------------------------------------------------------------------------------------
+  ordered                 13081±1307        102.19±10.21 MB/s         11.98±1.20 GB    120.00±0.00s
+  journal                    3551±83          27.74±0.65 MB/s          3.26±0.08 GB    120.41±0.34s
+  writeback               11917±1001          93.10±7.82 MB/s         11.02±0.78 GB    121.35±2.23s
+  nojournal               10955±1280         85.59±10.00 MB/s         10.03±1.17 GB    120.00±0.00s
+
+  TABLE T2 [SEQ]: I/O Latency  --  Sequential Write  (mean ± stddev)
+  Mode                         Avg                 p50                 p99               p99.9              p99.99
+  ------------------------------------------------------------------------------------------------------------
+  ordered              0.07±0.01ms         0.01±0.00ms         0.02±0.00ms         9.74±0.77ms        16.34±2.35ms
+  journal              0.28±0.01ms         0.01±0.00ms         0.03±0.00ms         0.06±0.00ms      806.15±21.06ms
+  writeback            0.08±0.01ms         0.01±0.00ms         0.02±0.00ms        10.45±0.90ms        22.14±8.76ms
+  nojournal            0.09±0.01ms         0.01±0.00ms         0.04±0.01ms        12.07±1.85ms        16.54±1.48ms
+
+  TABLE T3 [SEQ]: Performance Overhead vs nojournal  --  Sequential Write  (mean values)
+  Mode            IOPS penalty    Lat overhead    p99 overhead
+  ------------------------------------------------------------------------------------------------------------
+  ordered              -19.4%         -19.5%         -45.2%
+  journal               67.6%         215.4%         -28.6%
+  writeback             -8.8%          -9.7%         -45.2%
+  nojournal           baseline        baseline        baseline
+
+  TABLE T4 [SEQ]: IOPS Variability  --  Sequential Write  (mean ± stddev)
+  Mode                       Min               Max           Std Dev          CV (%)
+  ------------------------------------------------------------------------------------------------------------
+  ordered                644±741      243496±13652  26889.35±3101.09    205.6±23.7%
+  journal                101±128        16812±5711    2181.63±170.65     61.4±4.8%
+  writeback                30±48      239276±13188  28291.70±3367.53    237.4±28.3%
+  nojournal            2745±2179       240496±8533  17952.18±3488.65    163.9±31.8%
+
+  TABLE T5 [SEQ]: Latency Breakdown -- write() vs fsync()  --  Sequential Write  (mean ± stddev)
+  Mode                     write() avg             fsync() avg     fsync share
+  ------------------------------------------------------------------------------------------------------------
+  ordered               71.72±6.17 µs           0.00±0.00 µs           0.0%
+  journal              281.33±6.78 µs           0.00±0.00 µs           0.0%
+  writeback             80.45±6.04 µs           0.00±0.00 µs           0.0%
+  nojournal            89.10±13.65 µs           0.00±0.00 µs           0.0%
+
+  TABLE T6 [SEQ]: CPU & Kernel Efficiency  --  Sequential Write  (mean ± stddev)
+  Mode                   sys_cpu           usr_cpu         total_cpu     ctx sw / IO
+  ------------------------------------------------------------------------------------------------------------
+  ordered            9.67±1.48%       0.99±0.16%      10.66±1.48%           0.01
+  journal            4.21±0.07%       0.27±0.00%       4.48±0.07%           0.01
+  writeback          8.54±0.78%       0.84±0.08%       9.38±0.78%           0.01
+  nojournal          9.52±0.98%       1.00±0.10%      10.52±0.98%           0.01
+
+==============================================================================================================
+  COMBINED TRACES  (blktrace + JBD2 covering both concurrent jobs)
+==============================================================================================================
+
+  TABLE T7: Combined Write Amplification Factor (blktrace on nvme0n1p6)  (mean ± stddev)
+  Physical bytes cover both WAL and seq jobs running concurrently.
+  WAF = physical bytes (with journal) / physical bytes (nojournal baseline).
+
+  No-journal baseline: 10276.1602±1199.7451 MB physical
+
+  Mode              Physical MB (mean±std)    Journaling WAF
+  ------------------------------------------------------------------------------------------------------------
+  ordered              9961.5039±5687.5728           0.9694x
+  journal               6714.6906±171.3245           0.6534x
+  writeback            11293.9445±801.4624           1.0990x
+  nojournal           10276.1602±1199.7451           1.0000x
+
+  TABLE T8: Combined JBD2 Journal Tracing (bpftrace)  (mean ± stddev)
+  Covers both WAL and seq jobs running concurrently.
+  All tracepoints filtered to nvme0n1p6 only.
+  nojournal: JBD2 disabled -- no journal activity.
+
+  TABLE T8A: Tracepoint Call Counts  (both jobs combined)  (mean ± stddev)
+  Tracepoint                                 ordered             journal           writeback           nojournal
+  ------------------------------------------------------------------------------------------------------------
+  jbd2_start_commit                           255±68              553±16             242±111          (disabled)
+  jbd2_commit_locking                         255±68              553±16             242±111          (disabled)
+  jbd2_commit_flushing                        255±68              553±16             242±111          (disabled)
+  jbd2_commit_logging                         255±68              553±16             242±111          (disabled)
+  jbd2_end_commit                             255±68              553±17             242±111          (disabled)
+  jbd2_run_stats                              255±68              553±17             242±111          (disabled)
+  jbd2_checkpoint                                0±0              522±16                 0±0          (disabled)
+  jbd2_checkpoint_stats                       254±68              551±18             240±111          (disabled)
+  jbd2_handle_start                       18230±3022        858190±20337          17275±1327          (disabled)
+  jbd2_handle_stats                       18234±3024        858201±20334          17279±1327          (disabled)
+    └ sync handles                               0±0                 0±0                 0±0          (disabled)
+  jbd2_handle_extend                             0±0                 0±0                 0±0          (disabled)
+  jbd2_handle_restart                            0±0                 0±0                 0±0          (disabled)
+  jbd2_submit_inode_data                         0±0                 0±0                 0±0          (disabled)
+  jbd2_update_log_tail                           0±0              526±17                 0±0          (disabled)
+  jbd2_write_superblock                          1±0              527±17                 1±0          (disabled)
+  jbd2_lock_buffer_stall                         0±0                 0±0                 0±0          (disabled)
+
+  TABLE T8B: Average Time per Commit Pipeline Stage  (both jobs combined)  (mean ± stddev)
+  Stage                                    ordered             journal           writeback           nojournal
+  ------------------------------------------------------------------------------------------------------------
+  wait (handle blocked)            29.992±16.137ms      19.331±1.825ms     60.269±16.086ms          (disabled)
+  request_delay                    23.900±14.841ms      19.886±2.468ms     28.790±12.312ms          (disabled)
+  running (txn open)              442.236±15.475ms     219.245±0.736ms    451.127±12.844ms          (disabled)
+  locking (txn close)              32.793±15.579ms       0.024±0.003ms     62.558±15.347ms          (disabled)
+  flushing (data writeback)          0.004±0.001ms       0.004±0.000ms       0.003±0.001ms          (disabled)
+  logging (journal write)         268.570±51.222ms     169.090±3.676ms    295.181±31.177ms          (disabled)
+  end-to-end commit               301.370±57.351ms     169.122±3.677ms    357.746±37.950ms          (disabled)
+
+  TABLE T8C: Per-Transaction Workload & JBD2 Time Budget  (both jobs combined)  (mean ± stddev)
+  Metric                                         ordered             journal           writeback           nojournal
+  ------------------------------------------------------------------------------------------------------------
+  total transactions in journal                   255±68              553±16             242±111          (disabled)
+  avg handles / txn                            75.9±13.8         1554.4±37.0            77.3±5.5          (disabled)
+  avg blocks dirtied / txn                       2.7±1.2         1546.2±37.2             3.0±1.1          (disabled)
+  avg blocks_logged / txn                        4.7±1.7         1554.1±37.3             5.0±2.0          (disabled)
+  avg blocks freed / tail update                       0         1629.7±46.1                   0          (disabled)
+  avg blocks written / checkpoint                0.0±0.0         1445.3±45.4             0.0±0.0          (disabled)
+  JBD2 commit time / bench time               63.3±12.1%           77.7±1.7%           71.3±7.6%          (disabled)
+  lock_buffer_stall total (ms)                       0±0                 0±0            664±1486          (disabled)
+
+==============================================================================================================
+  CROSS-WORKLOAD COMPARISON
+==============================================================================================================
+
+  TABLE X1: Cross-Workload Throughput Comparison  (concurrent run)  (mean ± stddev)
+  Mode                        WAL IOPS                  WAL BW                Seq IOPS                    Seq BW
+  ------------------------------------------------------------------------------------------------------------
+  ordered                          2±1           0.02±0.00 MB/s              13081±1307          102.19±10.21 MB/s
+  journal                          3±0           0.03±0.00 MB/s                 3551±83            27.74±0.65 MB/s
+  writeback                        2±1           0.01±0.01 MB/s              11917±1001            93.10±7.82 MB/s
+  nojournal                        3±0           0.02±0.00 MB/s              10955±1280           85.59±10.00 MB/s
+
+  Both jobs ran concurrently and contended for the same journal.
+  WAL IOPS is depressed compared to isolation due to seq write pressure.
+
+==============================================================================================================
+  INTERPRETATION GUIDE
+==============================================================================================================
+
+  T1  Throughput: IOPS and bandwidth per mode, per job.
+  T2  Latency: per-I/O round-trip including any fsync() cost.
+  T3  Overhead %: performance penalty of journaling vs nojournal baseline (mean values).
+  T4  IOPS variability: high CV% means journal checkpoint stall spikes.
+  T5  Latency split: fraction of time in fsync() vs write().
+  T6  CPU: kernel (JBD2 commit, writeback) vs user time per job.
+  T7  WAF: combined physical bytes / nojournal -- total journaling tax.
+  T8  JBD2 tracing: commit counts, stage timing, % bench time in journal.
+  X1  Side-by-side throughput showing concurrent contention effects.
+
+  Averaged across 5 run(s):
+    results/20260425_155940/
+    results/20260425_160824/
+    results/20260425_161722/
+    results/20260425_162615/
+    results/20260425_163520/
+
