@@ -1,0 +1,37 @@
+dbench version 4.00 - Copyright Andrew Tridgell 1999-2004
+
+Running for 10 seconds with load '/usr/share/dbench/client.txt' and minimum warmup 2 secs
+0 of 1 processes prepared for launch   0 sec
+1 of 1 processes prepared for launch   0 sec
+releasing clients
+   1     13572    90.84 MB/sec  warmup   1 sec  latency 8.401 ms
+   1     40951    70.89 MB/sec  execute   1 sec  latency 8.594 ms
+   1     54120    71.32 MB/sec  execute   2 sec  latency 16.237 ms
+   1     68102    72.88 MB/sec  execute   3 sec  latency 9.298 ms
+   1     78889    69.09 MB/sec  execute   4 sec  latency 18.252 ms
+   1     91144    68.07 MB/sec  execute   5 sec  latency 14.795 ms
+   1    103836    68.42 MB/sec  execute   6 sec  latency 8.939 ms
+   1    117890    69.53 MB/sec  execute   7 sec  latency 9.476 ms
+   1    131065    69.75 MB/sec  execute   8 sec  latency 8.299 ms
+   1    145246    70.50 MB/sec  execute   9 sec  latency 8.363 ms
+   1  cleanup  10 sec
+   0  cleanup  10 sec
+
+ Operation      Count    AvgLat    MaxLat
+ ----------------------------------------
+ NTCreateX      22950     0.015     1.277
+ Close          16809     0.002     1.158
+ Rename           971     0.043     0.229
+ Unlink          4672     0.042     0.359
+ Qpathinfo      20803     0.007     1.327
+ Qfileinfo       3617     0.001     0.016
+ Qfsinfo         3830     0.002     0.052
+ Sfileinfo       1852     0.013     0.384
+ Find            8050     0.026     0.309
+ WriteX         11318     0.030     5.004
+ ReadX          36053     0.004     4.676
+ LockX             76     0.003     0.007
+ UnlockX           76     0.002     0.003
+ Flush           1602     5.148    18.241
+
+Throughput 70.4956 MB/sec  1 clients  1 procs  max_latency=18.252 ms

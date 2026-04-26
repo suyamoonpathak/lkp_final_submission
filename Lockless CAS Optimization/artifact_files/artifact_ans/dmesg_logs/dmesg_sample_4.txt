@@ -1,0 +1,19 @@
+[10534.177079] jbd2_trace: loading — device=nvme0n1p6  optimize=0 (baseline)
+[10534.253333] jbd2_trace: 8 probes active. rmmod for report.
+[10537.272962] jbd2_trace: ============================================
+[10537.272969] jbd2_trace:  FSYNC AND WAIT-COMMIT LATENCY  (device: nvme0n1p6)
+[10537.272971] jbd2_trace:  Mode: BASELINE
+[10537.272973] jbd2_trace: ============================================
+[10537.272975] jbd2_trace: PHASE                                   COUNT  TOTAL_ms   AVG_us   MIN_us   MAX_us
+[10537.272978] jbd2_trace: ext4_sync_file                           2040     20021     9814     4640    17452
+[10537.272984] jbd2_trace: file_write_and_wait_range                2040      4476     2194       75     8446
+[10537.272987] jbd2_trace: jbd2_log_wait_commit                     2040     15536     7615     4299    14780
+[10537.272990] jbd2_trace: jbd2_commit_transaction                   509      2531     4974     3310    12367
+[10537.272993] jbd2_trace: blkdev_issue_flush                          1         2     2044     2044     2044
+[10537.272997] jbd2_trace:
+[10537.272998] jbd2_trace: ── SUMMARY ──
+[10537.272999] jbd2_trace: 1. Total real workload execution time: 2539 ms
+[10537.273001] jbd2_trace: 2. Total aggregated fsync CPU time: 20021 ms
+[10537.273002] jbd2_trace: 3. Total aggregated time taken on metadata locks: 115 ms
+[10537.273004] jbd2_trace: 4. Total count of fsyncs: 2040
+[10537.273005] jbd2_trace: done.

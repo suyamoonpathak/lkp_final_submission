@@ -74,6 +74,7 @@ CONFIG_DEBUG_INFO_BTF
 CONFIG_KPROBE_EVENTS
 CONFIG_DEBUG_INFO_DWARF5
 ```
+If `bpftrace` or `debugfs` errors occur, set `ENABLE_JBD2_TRACE=0` in the relevant `run_analysis.sh`. JBD2 commit statistics will be omitted from the output tables, but the fio benchmarks will complete normally.
 
 ## Reproduce
 
