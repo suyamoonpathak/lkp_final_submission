@@ -30,7 +30,7 @@ MTech Rocks/
 ├── Fast Commit Optimization/
 │   └── README.md                          ← C3 + C4 fast-commit extensions, patches, benches, results
 │
-├── Lockless CAS Optimization/
+├── Lockless_CAS_Optimization/
 │   └── README.md                          ← Lockless CAS module, benchmark script , journalling validation
 │
 ├── Workload Characteristics/
@@ -109,7 +109,7 @@ Lockless CAS Optimization module is built **out-of-tree against any installed Li
 
 ```bash
 sudo apt install -y linux-headers-$(uname -r)
-cd "MTech Rocks/Lockless CAS Optimization/artifact_files"
+cd "MTech Rocks/Lockless_CAS_Optimization/artifact_files"
 make clean && make                     # produces jbd2_trace.ko
 ```
 
@@ -215,7 +215,7 @@ the kernel, plus a build of Lockless CAS Optimization module.
 3. **Build Lockless CAS Optimization module against your running kernel.**
 
    ```bash
-   cd "MTech Rocks/Lockless CAS Optimization/artifact_files"
+   cd "MTech Rocks/Lockless_CAS_Optimization/artifact_files"
    sudo apt install -y linux-headers-$(uname -r)
    make clean && make
    ```
@@ -232,8 +232,8 @@ the kernel, plus a build of Lockless CAS Optimization module.
    cat "MTech Rocks/Fast Commit Optimization/eval_results_c4/baremetal/PATCHED_C4_6.1.4-C3C4Patch/collapse_summary.txt"
 
    # Lockless CAS Optimization
-   ls "MTech Rocks/Lockless CAS Optimization/artifact_files/benchmark_results/" | head
-   cat "MTech Rocks/Lockless CAS Optimization/artifact_files/artifact_ans/dmesg_logs/"*.txt | head -30
+   ls "MTech Rocks/Lockless_CAS_Optimization/artifact_files/benchmark_results/" | head
+   cat "MTech Rocks/Lockless_CAS_Optimization/artifact_files/artifact_ans/dmesg_logs/"*.txt | head -30
 
    
    ```
@@ -266,7 +266,7 @@ contributions.
 - `README.md` — this file
 - `declaration.txt` — group declaration
 - `project_report.pdf` — project report
-- `Fast Commit Optimization/`, `Lockless CAS Optimization/`, `Workload Characteristics/`, `Fragmented Journal Map Optimization/` — per-member artifacts
+- `Fast Commit Optimization/`, `Lockless_CAS_Optimization/`, `Workload Characteristics/`, `Fragmented Journal Map Optimization/` — per-member artifacts
 - `combined_report/project_report.tex` — LaTeX source of the report
 
 The Linux 6.1.4 kernel source tree is **not** in the ZIP (per
