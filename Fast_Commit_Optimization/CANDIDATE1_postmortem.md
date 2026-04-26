@@ -52,7 +52,7 @@ with the early phases of a full commit, reducing fsync tail latency.
 3. **Insert new drain + reset just before T_FLUSH** (line 566). Wait
    for any in-flight fast commits to complete, then reset `j_fc_off`.
 
-Full patch saved at `suyamoon/jbd2-fc-barrier-defer.patch`.
+Full patch saved at `Fast_Commit_Optimization/jbd2-fc-barrier-defer.patch`.
 
 ### The hidden race we discovered
 
@@ -239,7 +239,7 @@ Our **infrastructure and methodology** all transfer to Candidate 2:
 
 ## 7. Artifacts preserved from this candidate
 
-All files remain in `suyamoon/` for reference:
+All files remain in `Fast_Commit_Optimization/` for reference:
 
 | File | Status |
 |---|---|

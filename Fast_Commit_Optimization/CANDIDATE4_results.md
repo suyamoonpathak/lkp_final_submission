@@ -44,7 +44,7 @@ path (`ext4_punch_hole()`) that does not mark ineligible and already
 tracks ranges.
 
 Total diff: 46 lines, single file. Patch at
-`suyamoon/fc-fallocate-range.patch`.
+`Fast_Commit_Optimization/fc-fallocate-range.patch`.
 
 ## 2. Characterization — measurement before implementation
 
@@ -126,12 +126,12 @@ was `6.1.4-cs614-c4-patched` with both C3 and C4 stacked.
   39 ms stdev on a 7032 ms mean (0.5% CV). The signal is not a
   one-off measurement artifact.
 
-Raw data at `suyamoon/eval_results_c4/baremetal/{BASELINE_6.1.4-C3Patch,
+Raw data at `Fast_Commit_Optimization/eval_results_c4/baremetal/{BASELINE_6.1.4-C3Patch,
 PATCHED_C4_6.1.4-C3C4Patch}/`.
 
 ## 4. Correctness — crash-recovery microbenches
 
-Three scripts at `suyamoon/c4_crash_test_{a,b,c}.sh` exercise the
+Three scripts at `Fast_Commit_Optimization/c4_crash_test_{a,b,c}.sh` exercise the
 replay path directly: do COLLAPSE/INSERT on a distinct-pattern file,
 fsync, drop caches, lazy-umount to simulate a dirty dismount, remount
 (which triggers FC replay), compare md5 and file size to the pure-Python
@@ -170,7 +170,7 @@ Failed 1 of 9 tests
 - **5/5 runnable-and-applicable tests PASS.**
 - `generic/473` is a pre-existing failure. The diff lines are byte-identical
   to the C3-kernel failure recorded at
-  `suyamoon/xfstests_c3/patched_6.1.4-cs614-c3-patched.log` and
+  `Fast_Commit_Optimization/xfstests_c3/patched_6.1.4-cs614-c3-patched.log` and
   show the same upstream issue (the output mismatch is at `1: [128..255]:
   data` vs actual `1: [128..135]: data`, which is a known interaction of
   fiemap reporting with an unrelated 6.1.4 extent merge behavior). No
@@ -181,7 +181,7 @@ Failed 1 of 9 tests
   confirming C4 does NOT regress C3's xattr fast-commit work. The two
   patches are independent.
 
-Full log: `suyamoon/xfstests_c4/patched_6.1.4-cs614-c4-patched.log`.
+Full log: `Fast_Commit_Optimization/xfstests_c4/patched_6.1.4-cs614-c4-patched.log`.
 
 ## 6. Evidence matrix
 
@@ -220,17 +220,17 @@ Full log: `suyamoon/xfstests_c4/patched_6.1.4-cs614-c4-patched.log`.
 
 ## 8. Artifacts
 
-- `suyamoon/fc-fallocate-range.patch` — the patch itself.
-- `suyamoon/bench_fallocate_range.sh` +
+- `Fast_Commit_Optimization/fc-fallocate-range.patch` — the patch itself.
+- `Fast_Commit_Optimization/bench_fallocate_range.sh` +
   `fallocate_range_helper.c` — measurement harness (from
   characterization).
-- `suyamoon/c4_crash_test_{a,b,c}.sh` — crash-recovery tests.
-- `suyamoon/char_results/6.1.4-cs614-c4-patched/fallocate_*.txt`
+- `Fast_Commit_Optimization/c4_crash_test_{a,b,c}.sh` — crash-recovery tests.
+- `Fast_Commit_Optimization/char_results/6.1.4-cs614-c4-patched/fallocate_*.txt`
   — 3-run result files on the patched kernel.
-- `suyamoon/char_results/6.1.4-cs614-c3-patched/fallocate_*.txt`
+- `Fast_Commit_Optimization/char_results/6.1.4-cs614-c3-patched/fallocate_*.txt`
   — 3-run baseline (C3 kernel is architecturally equivalent to stock
   for this path).
-- `suyamoon/xfstests_c4/patched_6.1.4-cs614-c4-patched.log` —
+- `Fast_Commit_Optimization/xfstests_c4/patched_6.1.4-cs614-c4-patched.log` —
   xfstests subset run.
 - Git tag `submission-c3` locks the prior TA-submission commit;
   C4 commits live after it on the master branch.

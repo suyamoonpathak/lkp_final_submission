@@ -20,7 +20,7 @@ preserved here as postmortems for transparency.
 ## Layout
 
 ```
-Fast Commit Optimization/
+Fast_Commit_Optimization/
 ├── README.md                            ← this file
 ├── fc-inline-xattr.patch                ← C3 patch (apply -p1 in linux-6.1.4)
 ├── fc-fallocate-range.patch             ← C4 patch
@@ -77,8 +77,8 @@ Fast Commit Optimization/
 
 ```bash
 cd /path/to/linux-6.1.4
-patch -p1 < /path/to/MTech\ Rocks/Fast\ Commit\ Optimization/fc-inline-xattr.patch
-patch -p1 < /path/to/MTech\ Rocks/Fast\ Commit\ Optimization/fc-fallocate-range.patch
+patch -p1 < /path/to/MTech\ Rocks/Fast_Commit_Optimization/fc-inline-xattr.patch
+patch -p1 < /path/to/MTech\ Rocks/Fast_Commit_Optimization/fc-fallocate-range.patch
 # build kernel as in INSTRUCTIONS_BAREMETAL_C3.md, boot, then proceed
 ```
 
@@ -86,27 +86,27 @@ patch -p1 < /path/to/MTech\ Rocks/Fast\ Commit\ Optimization/fc-fallocate-range.
 
 ```bash
 cd /path/to/MTech\ Rocks
-bash Fast Commit Optimization/build_char_helpers.sh
-sudo bash Fast Commit Optimization/eval_baremetal_c3.sh
-# results land in Fast Commit Optimization/eval_results_c3/baremetal/
+bash Fast_Commit_Optimization/build_char_helpers.sh
+sudo bash Fast_Commit_Optimization/eval_baremetal_c3.sh
+# results land in Fast_Commit_Optimization/eval_results_c3/baremetal/
 ```
 
 ### Run C4 microbench
 
 ```bash
-sudo bash Fast Commit Optimization/eval_baremetal_c4.sh
-# results land in Fast Commit Optimization/eval_results_c4/baremetal/
+sudo bash Fast_Commit_Optimization/eval_baremetal_c4.sh
+# results land in Fast_Commit_Optimization/eval_results_c4/baremetal/
 ```
 
 ### Run crash tests
 
 ```bash
-sudo bash Fast Commit Optimization/c3_crash_test_a.sh
-sudo bash Fast Commit Optimization/c3_crash_test_b.sh
-sudo bash Fast Commit Optimization/c3_crash_test_c.sh
-sudo bash Fast Commit Optimization/c4_crash_test_a.sh
-sudo bash Fast Commit Optimization/c4_crash_test_b.sh
-sudo bash Fast Commit Optimization/c4_crash_test_c.sh
+sudo bash Fast_Commit_Optimization/c3_crash_test_a.sh
+sudo bash Fast_Commit_Optimization/c3_crash_test_b.sh
+sudo bash Fast_Commit_Optimization/c3_crash_test_c.sh
+sudo bash Fast_Commit_Optimization/c4_crash_test_a.sh
+sudo bash Fast_Commit_Optimization/c4_crash_test_b.sh
+sudo bash Fast_Commit_Optimization/c4_crash_test_c.sh
 # each prints PASS / FAIL and the recovered xattr / file contents
 ```
 

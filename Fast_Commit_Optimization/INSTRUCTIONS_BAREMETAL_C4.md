@@ -57,14 +57,14 @@ So: stay on whatever you're booted into (stock, C3, whatever), and run:
 # in REPO
 cd ~/jbd2-project
 uname -r   # any 6.1.4-* except the one you'll build in step 2
-sudo bash suyamoon/eval_baremetal_c4.sh
+sudo bash Fast_Commit_Optimization/eval_baremetal_c4.sh
 ```
 
 Runtime ~2 min. Auto-detects BASELINE by scanning your kernel
 source tree for the C4 identifier (absent = baseline).
 
 Results save to
-`suyamoon/eval_results_c4/baremetal/BASELINE_<kernel>/`.
+`Fast_Commit_Optimization/eval_results_c4/baremetal/BASELINE_<kernel>/`.
 
 Push right away so we have it on record:
 
@@ -72,7 +72,7 @@ Push right away so we have it on record:
 # in REPO
 cd ~/jbd2-project
 git checkout -b results-c4/milan
-git add suyamoon/eval_results_c4/baremetal/
+git add Fast_Commit_Optimization/eval_results_c4/baremetal/
 git commit -m "milan: c4 baseline (C3-kernel, arch-equivalent to stock for fallocate)"
 git push -u origin results-c4/milan
 ```
@@ -89,7 +89,7 @@ cd ~/linux-6.1.4
 # If you want a C4-only kernel (no C3), re-extract the pristine
 # tarball first. For a combined C3+C4 kernel, keep C3 applied.
 
-patch -p1 < ~/jbd2-project/suyamoon/fc-fallocate-range.patch
+patch -p1 < ~/jbd2-project/Fast_Commit_Optimization/fc-fallocate-range.patch
 # Expected: "patching file fs/ext4/extents.c"
 
 # Verify the patch applied
@@ -170,14 +170,14 @@ sudo reboot
 ```bash
 # in REPO
 cd ~/jbd2-project
-sudo bash suyamoon/eval_baremetal_c4.sh
+sudo bash Fast_Commit_Optimization/eval_baremetal_c4.sh
 ```
 
 The script auto-detects PATCHED_C4 by finding
 `ext4_fc_track_range(handle, inode, punch_start` in your source tree.
 
 Results save to
-`suyamoon/eval_results_c4/baremetal/PATCHED_C4_<kernel>/`.
+`Fast_Commit_Optimization/eval_results_c4/baremetal/PATCHED_C4_<kernel>/`.
 
 Runtime ~2 min.
 
@@ -190,9 +190,9 @@ Three short tests (~45 seconds total):
 ```bash
 # in REPO
 cd ~/jbd2-project
-sudo bash suyamoon/c4_crash_test_a.sh   # collapse 32 blocks → crash → verify md5+size
-sudo bash suyamoon/c4_crash_test_b.sh   # insert 16 blocks  → crash → verify md5+size
-sudo bash suyamoon/c4_crash_test_c.sh   # interleaved collapse/insert → crash → verify
+sudo bash Fast_Commit_Optimization/c4_crash_test_a.sh   # collapse 32 blocks → crash → verify md5+size
+sudo bash Fast_Commit_Optimization/c4_crash_test_b.sh   # insert 16 blocks  → crash → verify md5+size
+sudo bash Fast_Commit_Optimization/c4_crash_test_c.sh   # interleaved collapse/insert → crash → verify
 ```
 
 All three must end with `PASS: Test X`. If any fails, capture the
@@ -205,7 +205,7 @@ output and ping Suyamoon before pushing benchmark results.
 ```bash
 # in REPO
 cd ~/jbd2-project
-git add suyamoon/eval_results_c4/baremetal/
+git add Fast_Commit_Optimization/eval_results_c4/baremetal/
 git commit -m "milan: c4 patched results"
 git push origin results-c4/milan
 ```

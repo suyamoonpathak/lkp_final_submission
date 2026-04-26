@@ -2,10 +2,10 @@
 # C4 characterization driver: builds helpers, runs all three benches
 # three times each, drops caches between runs. Run as root:
 #
-#   sudo bash suyamoon/run_c4_characterization.sh
+#   sudo bash Fast_Commit_Optimization/run_c4_characterization.sh
 #
 # When it finishes, the results are in:
-#   suyamoon/char_results/<uname -r>/{fallocate_*,xattr_block,concurrent_T*}.txt
+#   Fast_Commit_Optimization/char_results/<uname -r>/{fallocate_*,xattr_block,concurrent_T*}.txt
 set -euo pipefail
 
 [ "$(id -u)" = "0" ] || { echo "Run as root (sudo bash $0)"; exit 1; }

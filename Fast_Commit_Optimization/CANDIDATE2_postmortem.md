@@ -360,11 +360,11 @@ We handed off to Milan and Sahil for bare-metal measurement.
 
 ### Pushed to GitHub
 
-- `suyamoon/mballoc-async-prefetch.patch` — the patch (clean apply to pristine 6.1.4)
-- `suyamoon/bench_async_prefetch.sh`, `bench_fio_throughput.sh` — VM benchmarks
-- `suyamoon/eval_milan_c2.sh`, `eval_sahil_c2.sh` — per-contributor bare-metal scripts
-- `suyamoon/INSTRUCTIONS_MILAN_C2.md`, `INSTRUCTIONS_SAHIL_C2.md` — end-to-end walkthroughs
-- `suyamoon/eval_results_c2/` — VM numbers (null result, preserved for comparison)
+- `Fast_Commit_Optimization/mballoc-async-prefetch.patch` — the patch (clean apply to pristine 6.1.4)
+- `Fast_Commit_Optimization/bench_async_prefetch.sh`, `bench_fio_throughput.sh` — VM benchmarks
+- `Fast_Commit_Optimization/eval_milan_c2.sh`, `eval_sahil_c2.sh` — per-contributor bare-metal scripts
+- `Fast_Commit_Optimization/INSTRUCTIONS_MILAN_C2.md`, `INSTRUCTIONS_SAHIL_C2.md` — end-to-end walkthroughs
+- `Fast_Commit_Optimization/eval_results_c2/` — VM numbers (null result, preserved for comparison)
 - `docs/superpowers/specs/2026-04-22-ext4-async-bitmap-prefetch-design.md` — design doc
 - `docs/superpowers/plans/2026-04-22-ext4-async-bitmap-prefetch.md` — implementation plan
 

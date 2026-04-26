@@ -12,7 +12,7 @@
 
 ## 1. What we measured
 
-**Primary workload (`suyamoon/bench_xattr.sh`):** A C helper
+**Primary workload (`Fast_Commit_Optimization/bench_xattr.sh`):** A C helper
 (`xattr_fsync_helper`) that does `fsetxattr(fd, "user.test", ...)` +
 `fsync(fd)` in a tight 5000-iteration loop on a fresh 256 MB
 ext4 + `fast_commit` filesystem.
@@ -138,12 +138,12 @@ short `user.*` attrs use).
 
 | File | Purpose |
 |---|---|
-| `suyamoon/fc-inline-xattr.patch` | The 108-line patch, applies cleanly to pristine 6.1.4. |
-| `suyamoon/bench_xattr.sh` | The benchmark script (incl. C helper for per-op fsync). |
-| `suyamoon/c3_crash_test_a.sh` | Crash-recovery: 100 xattrs must survive. |
-| `suyamoon/c3_crash_test_b.sh` | Crash-recovery: set-100-remove-50 → exactly 50 remain. |
-| `suyamoon/c3_crash_test_c.sh` | Crash-recovery: 500-byte block xattr must survive (full-commit fallback works). |
-| `suyamoon/eval_results_c3/` | Raw benchmark output. |
+| `Fast_Commit_Optimization/fc-inline-xattr.patch` | The 108-line patch, applies cleanly to pristine 6.1.4. |
+| `Fast_Commit_Optimization/bench_xattr.sh` | The benchmark script (incl. C helper for per-op fsync). |
+| `Fast_Commit_Optimization/c3_crash_test_a.sh` | Crash-recovery: 100 xattrs must survive. |
+| `Fast_Commit_Optimization/c3_crash_test_b.sh` | Crash-recovery: set-100-remove-50 → exactly 50 remain. |
+| `Fast_Commit_Optimization/c3_crash_test_c.sh` | Crash-recovery: 500-byte block xattr must survive (full-commit fallback works). |
+| `Fast_Commit_Optimization/eval_results_c3/` | Raw benchmark output. |
 | `docs/superpowers/specs/2026-04-23-ext4-fastcommit-inline-xattr-design.md` | Design spec. |
 | `docs/superpowers/plans/` + `/home/lkp-ubuntu/.claude/plans/i-am-doing-cs614-wobbly-karp.md` | Implementation plan. |
 
@@ -186,7 +186,7 @@ short `user.*` attrs use).
 7.5 GiB RAM, real SSD (not a loop device backed by host cache).
 
 Raw results committed on branch `results-c3/baremetal`
-(`suyamoon/eval_results_c3/baremetal/…`), 3 repeats each.
+(`Fast_Commit_Optimization/eval_results_c3/baremetal/…`), 3 repeats each.
 
 | Metric | Stock | Patched | Change |
 |---|---|---|---|
@@ -226,7 +226,7 @@ Raw results committed on branch `results-c3/baremetal`
 
 Same subset run on both kernels: `generic/{062,118,300,337,454,455,
 473,482}` plus `ext4/032`. Raw logs at
-`suyamoon/xfstests_c3/`.
+`Fast_Commit_Optimization/xfstests_c3/`.
 
 `generic/388` deliberately excluded — it's an XFS-specific shutdown
 test that hangs fsstress on ext4+fast_commit regardless of our patch

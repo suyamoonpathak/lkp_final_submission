@@ -31,7 +31,7 @@ the baseline JBD2 cost.
 ## Layout
 
 ```
-Workload Characteristics/
+Workload_Characteristics/
 ├── README.md                                    ← this file
 ├── Sync Heavy Workload/
 │   ├── run_analysis.sh                          ← interactive benchmark: modes × block sizes × N runs
@@ -102,7 +102,7 @@ size is varied. Each write forces an immediate journal commit, isolating
 the cost of commit synchronization.
 
 ```bash
-cd "MTech Rocks/Workload Characteristics/Sync Heavy Workload"
+cd "MTech Rocks/Workload_Characteristics/Sync Heavy Workload"
 sudo bash run_analysis.sh
 # prompts for device, mount point, size, block sizes (default: 4k 8k 16k 32k 64k), N runs (default: 5)
 # results land under results/<timestamp>/
@@ -122,7 +122,7 @@ writeback, commits, and checkpointing freely. This serves as a baseline
 to contrast with the sync-heavy results.
 
 ```bash
-cd "MTech Rocks/Workload Characteristics/Seq Write Workload"
+cd "MTech Rocks/Workload_Characteristics/Seq Write Workload"
 sudo bash run_analysis.sh
 # prompts for device, mount point, size, block sizes (default: 128k 256k 512k 1m), N runs (default: 5)
 # results land under results/<timestamp>/
@@ -140,7 +140,7 @@ run simultaneously, competing for journal resources. This mirrors a database
 performing WAL writes while a reporting query streams large amounts of data.
 
 ```bash
-cd "MTech Rocks/Workload Characteristics/Combined Workload"
+cd "MTech Rocks/Workload_Characteristics/Combined Workload"
 sudo bash run_analysis.sh
 # prompts for device, mount point, runtime per mode (default: 120s),
 # BS for sync-heavy (default: 8k), BS for seq-write (default: 1m), N runs (default: 5)
@@ -168,6 +168,6 @@ across all four journaling modes.
   same number of bytes. The Combined Workload overrides this with
   `--runtime` so both jobs run for the same wall time.
 - Fast commit is intentionally not enabled here. The companion fast
-  commit work is in `Fast Commit Optimization/` (C3 inline xattr,
-  C4 fallocate range) and `Lockless CAS Optimization/` (lockless
+  commit work is in `Fast_Commit_Optimization/` (C3 inline xattr,
+  C4 fallocate range) and `Lockless_CAS_Optimization/` (lockless
   wait-commit module).

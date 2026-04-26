@@ -122,7 +122,7 @@ latency of fast commits that happen to overlap with a full commit.
 
 ```bash
 # From the repo root
-patch -p1 < suyamoon/jbd2-fc-barrier-defer.patch
+patch -p1 < Fast_Commit_Optimization/jbd2-fc-barrier-defer.patch
 
 # Rebuild the kernel (if building from source)
 cd linux-6.1.4

@@ -18,7 +18,7 @@ itself.
 ## Layout
 
 ```
-Fragmented Journal Map Optimization/
+Fragmeted_Jounral_Map_Optimization/
 ├── README.md                            ← this file
 ├── patches/
 │   ├── First.patch                      ← jbd2/journal.c + include/linux/jbd2.h: callback hooks
@@ -76,11 +76,11 @@ sudo apt-get install -y fio blktrace git
 ```bash
 # 1. Apply the two JBD2 patches to your linux-6.1.4 source tree
 cd /path/to/linux-6.1.4
-git apply /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/patches/First.patch
-git apply /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/patches/Second.patch
+git apply /path/to/MTech\ Rocks/Fragmeted_Jounral_Map_Optimization/patches/First.patch
+git apply /path/to/MTech\ Rocks/Fragmeted_Jounral_Map_Optimization/patches/Second.patch
 
 # 2. Extract the module source into fs/
-tar xzf /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/module/ext4_tracker.tar.gz -C fs/
+tar xzf /path/to/MTech\ Rocks/Fragmeted_Jounral_Map_Optimization/module/ext4_tracker.tar.gz -C fs/
 
 # 3. Start from the current kernel config
 cp /boot/config-$(uname -r) .config
@@ -101,7 +101,7 @@ sudo insmod fs/ext4_tracker/ext4_tracker.ko
 cat /proc/filesystems | grep ext4_tracker   # should list ext4_tracker
 
 # 5. Run the benchmark suite
-cd /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/benchmarks
+cd /path/to/MTech\ Rocks/Fragmeted_Jounral_Map_Optimization/benchmarks
 sudo bash fjm_full_benchmark.sh             # ~40-60 minutes, 6 modes
 # or for stability:
 sudo bash run_repeated_benchmark.sh 5       # ~3.5-5 hours

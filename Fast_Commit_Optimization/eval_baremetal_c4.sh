@@ -1,9 +1,9 @@
 #!/bin/bash
 # EXT4 FASTCOMMIT FALLOCATE RANGE — Bare-metal Evaluation Script (Candidate 4)
 #
-# Patch: suyamoon/fc-fallocate-range.patch
-# Results writeup: suyamoon/CANDIDATE4_results.md
-# C3 (already done): suyamoon/CANDIDATE3_results.md
+# Patch: Fast_Commit_Optimization/fc-fallocate-range.patch
+# Results writeup: Fast_Commit_Optimization/CANDIDATE4_results.md
+# C3 (already done): Fast_Commit_Optimization/CANDIDATE3_results.md
 #
 # Prerequisite: C3 has already been merged into your Linux 6.1.4 tree
 # (the INSTRUCTIONS_BAREMETAL_C3.md flow). This script adds the C4 patch
@@ -178,6 +178,6 @@ echo "=== Done. Results: $RESULT_DIR ==="
 echo ""
 echo "Push results:"
 echo "  git checkout -b results-c4/$CONTRIBUTOR"
-echo "  git add suyamoon/eval_results_c4/$CONTRIBUTOR/"
+echo "  git add Fast_Commit_Optimization/eval_results_c4/$CONTRIBUTOR/"
 echo "  git commit -m 'results-c4: $CONTRIBUTOR bare-metal $RUN_LABEL'"
 echo "  git push -u origin results-c4/$CONTRIBUTOR"

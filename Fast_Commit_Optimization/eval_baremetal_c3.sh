@@ -1,9 +1,9 @@
 #!/bin/bash
 # EXT4 FASTCOMMIT INLINE XATTR — Bare-metal Evaluation Script (Candidate 3)
 #
-# Patch: suyamoon/fc-inline-xattr.patch
+# Patch: Fast_Commit_Optimization/fc-inline-xattr.patch
 # Spec:  docs/superpowers/specs/2026-04-23-ext4-fastcommit-inline-xattr-design.md
-# Results writeup: suyamoon/CANDIDATE3_results.md
+# Results writeup: Fast_Commit_Optimization/CANDIDATE3_results.md
 #
 # Run TWICE:
 #   Step 1 (STOCK):    sudo bash eval_baremetal_c3.sh    # on unpatched 6.1.4
@@ -186,6 +186,6 @@ echo ""
 echo "=== Done. Results: $RESULT_DIR ==="
 echo ""
 echo "Push results:"
-echo "  git add suyamoon/eval_results_c3/$CONTRIBUTOR/"
+echo "  git add Fast_Commit_Optimization/eval_results_c3/$CONTRIBUTOR/"
 echo "  git commit -m 'results-c3: $CONTRIBUTOR bare-metal $RUN_LABEL'"
 echo "  git push"
