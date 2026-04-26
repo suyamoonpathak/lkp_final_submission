@@ -12,7 +12,7 @@ and the unified writeup is `project_report.pdf`.
 | Member            | Roll       | Contribution                                                          |
 |-------------------|------------|------------------------------------------------------------------------|
 | Milan Roy         | 241110042  | Workload characterization, JBD2 Study |
-| Sahil Basia       | 241110061  | Lockless CAS replacement for `jbd2_log_wait_commit` (kretprobes module)|
+| Sahil Basia       | 241110061  | Lockless CAS implemented for locks in  `jbd2_log_wait_commit`|
 | Shrey Sharma      | 251110068  | Fragmented Journal Map (FJM): JBD2 hooks + out-of-tree allocator module |
 | Suyamoon Pathak   | 241110091  | Two FastCommit coverage extensions (inline xattr + fallocate range)    |
 
@@ -31,7 +31,7 @@ MTech Rocks/
 │   └── README.md                          ← C3 + C4 fast-commit extensions, patches, benches, results
 │
 ├── Lockless CAS Optimization/
-│   └── README.md                          ← Lockless CAS module, scaling matrix, fsck validation
+│   └── README.md                          ← Lockless CAS module, benchmark script , fsck validation
 │
 ├── Workload Characteristics/
 │   └── README.md                          ← per-mode JBD2 characterization, fio + bpftrace
@@ -50,9 +50,9 @@ member-specific instructions; this file is the top-level roadmap.
 
 | Resource  | Minimum         | Recommended for full evaluation         |
 |-----------|-----------------|------------------------------------------|
-| CPU       | 2 cores         | 8+ cores (Lockless CAS Optimization matrix scales to 16) |
+| CPU       | 2 cores         | 8+ cores |
 | Memory    | 4 GB            | 8 GB                                                     |
-| Storage   | 40 GB free      | An NVMe partition for Lockless CAS Optimization and Workload Characteristics |
+| Storage   | 40 GB free      | An NVMe partition|
 | Extra HW  | None            | None                                     |
 
 A single-partition install is fine for Fast Commit Optimization's loop-image
@@ -109,7 +109,7 @@ Lockless CAS Optimization module is built **out-of-tree against any installed Li
 
 ```bash
 sudo apt install -y linux-headers-$(uname -r)
-cd "MTech Rocks/Lockless CAS Optimization/module"
+cd "MTech Rocks/Lockless CAS Optimization/artifact_file"
 make clean && make                     # produces jbd2_trace.ko
 ```
 
