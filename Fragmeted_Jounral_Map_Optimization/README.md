@@ -102,9 +102,9 @@ cat /proc/filesystems | grep ext4_tracker   # should list ext4_tracker
 
 # 5. Run the benchmark suite
 cd /path/to/MTech\ Rocks/Fragmeted_Jounral_Map_Optimization/benchmarks
-sudo bash fjm_full_benchmark.sh             # ~40-60 minutes, 6 modes
+sudo bash fjm_full_benchmark.sh             # ~4-6 minutes, 6 modes
 # or for stability:
-sudo bash run_repeated_benchmark.sh 5       # ~3.5-5 hours
+sudo bash run_repeated_benchmark.sh 5       # ~20-30 minutes
 ```
 
 ## Headline numbers (5-run average, 100 MB WAL workload, fio fsync=1)
