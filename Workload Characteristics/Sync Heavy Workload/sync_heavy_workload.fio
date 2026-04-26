@@ -1,0 +1,23 @@
+# sync_heavy_workload.fio
+# Sync-heavy sequential write workload: every write is immediately forced to
+# disk with fsync(), making each write a synchronous journal commit.
+# Do NOT run this directly -- it is called by run_analysis.sh
+
+[global]
+
+# Stop after writing exactly 'size' bytes (not time-based)
+time_based=0
+
+numjobs=1
+group_reporting=0
+
+
+[sync-heavy]
+rw=write
+ioengine=sync
+direct=0
+buffered=1
+iodepth=1
+
+# fsync after every write forces a journal commit per operation
+fsync=1

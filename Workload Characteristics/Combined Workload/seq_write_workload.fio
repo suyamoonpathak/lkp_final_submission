@@ -1,0 +1,20 @@
+# seq_write_workload.fio
+# Sequential write workload without fsync -- measures raw journaling overhead
+# without the per-write commit penalty.
+# Do NOT run this directly -- it is called by run_analysis.sh
+
+[global]
+
+# Stop after a specified duration, not after 'size' bytes is written.
+time_based=1
+size=10g
+
+numjobs=1
+group_reporting=0
+
+[seq-write]
+rw=write
+ioengine=sync
+direct=0
+buffered=1
+iodepth=1

@@ -1,10 +1,10 @@
 Project Group Name: MTech Rocks
 
 Members:
-  - Milan Roy        (241110042) -- <contribution %>
-  - Sahil Basia      (241110061) -- <contribution %>
-  - Shrey Sharma     (251110068) -- <contribution %>
-  - Suyamoon Pathak  (241110091) -- <contribution %>
+  - Milan Roy        (241110042) -- <25% contribution>
+  - Sahil Basia      (241110061) -- <25% contribution>
+  - Shrey Sharma     (251110068) -- <25% contribution>
+  - Suyamoon Pathak  (241110091) -- <25% contribution>
 
 Declaration:
 "All project members own and give their consent on everything submitted as
@@ -39,11 +39,11 @@ Attributions (external sources used):
   - The fio benchmarking tool (https://fio.readthedocs.io) was used
     unmodified across multiple members' benchmark scripts.
   - The bpftrace tracing tool (https://bpftrace.org) was used
-    unmodified by Milan to instrument JBD2 tracepoints during the
+    unmodified to instrument JBD2 tracepoints during the
     workload characterization.
   - sysbench, fs_mark, and dbench were used unmodified by Sahil for
     the multi-thread scaling matrix.
-  - AI assistance (Claude) was used by individual members for
+  - AI assistance (Claude, ChatGPT, etc) was used by individual members for
     brainstorming patch ideas, drafting benchmark scripts, and
     proofreading the report. All final patch code, benchmark
     scripts, and prose were reviewed, tested, and approved by the
