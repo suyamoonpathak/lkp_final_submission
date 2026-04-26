@@ -16,17 +16,17 @@ generated source code/documentation/Figures etc. are properly attributed."
 Attributions (external sources used):
   - Linux 6.1.4 kernel source, downloaded from
     https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.4.tar.xz .
-    Suyamoon's patches (suyamoon/fc-inline-xattr.patch and
-    suyamoon/fc-fallocate-range.patch) modify fs/ext4/xattr.c,
+    Suyamoon's patches (Fast_Commit_Optimization/fc-inline-xattr.patch and
+    Fast_Commit_Optimization/fc-fallocate-range.patch) modify fs/ext4/xattr.c,
     fs/ext4/fast_commit.c, and fs/ext4/extents.c under the kernel's
     existing GPL v2 license. Sahil's out-of-tree kernel module
-    (sahil/module/jbd2_trace.c) hooks into JBD2 via the kernel's
+    (Lockless_CAS_Optimization/artifact_files/jbd2_trace.c) hooks into JBD2 via the kernel's
     public kretprobes API, also under GPL v2. Shrey's two patches
-    (shrey/patches/First.patch, Second.patch) modify
+    (Fragmeted_Jounral_Map_Optimization/patches/First.patch, Second.patch) modify
     fs/jbd2/journal.c, fs/jbd2/transaction.c, and
     include/linux/jbd2.h to add allocator and free-txn callback
     hooks; his out-of-tree ext4_tracker module
-    (shrey/module/ext4_tracker.tar.gz) is also under GPL v2.
+    (Fragmeted_Jounral_Map_Optimization/module/ext4_tracker.tar.gz) is also under GPL v2.
   - The ATC 2024 FastCommit paper by Shirwadkar, Kadekodi, and Ts'o
     was referenced for design context and its identification of the
     xattr coverage gap that Candidate 3 closes.

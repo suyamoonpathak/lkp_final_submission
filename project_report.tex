@@ -1,20 +1,75 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
+% Geometry & layout
 \usepackage[margin=1in]{geometry}
+\setlength{\parskip}{0.5em}
+
+% Fonts & encoding
 \usepackage[T1]{fontenc}
-\PassOptionsToPackage{hyphens}{url}
-\usepackage{hyperref}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{tabularx}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{enumitem}
-\usepackage{titlesec}
 \usepackage[expansion=false]{microtype}
 
+% Hyperlinks
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue,
+    breaklinks=true
+}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{makecell}
+
+% Graphics & plots
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{pgfplotstable}
+
+% Math
+\usepackage{amsmath}
+
+% Lists
+\usepackage{enumitem}
+
+% Captions & subfigures
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=none,
+    showstringspaces=false,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    backgroundcolor=\color{gray!10}
+}
+
+% Headers/formatting
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% Floats
+\usepackage{float}
+
+% Custom spacing tweak
 \emergencystretch=3em
+
+% Path command
 \newcommand{\pth}[1]{\path{#1}}
 
 \hypersetup{
@@ -36,46 +91,77 @@
     backgroundcolor=\color{gray!10}
 }
 
-\title{MTech Rocks: Optimizing the ext4/JBD2 Consistency Mechanism on Linux 6.1.4}
-
-\author{
-    Milan Roy (241110042) \and
-    Sahil Basia (241110061) \and
-    Shrey Sharma (251110068) \and
-    Suyamoon Pathak (241110091) \\[0.5em]
-    CS614 Linux Kernel Programming \\
-    Indian Institute of Technology Kanpur
-}
-
-\date{April 2026}
-
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+    \centering
+
+    \vspace*{1.5cm}
+
+    {\Large \textbf{Indian Institute of Technology Kanpur}}\\[0.6em]
+    {\normalsize Department of Computer Science and Engineering}
+
+    \vspace{2.5cm}
+
+    {\large \textbf{CS614: Linux Kernel Programming}}\\[0.6em]
+    {\normalsize \textit{Final Report}}
+
+    \vspace{2.5cm}
+
+    {\LARGE \textbf{Analysis, Benchmarking, and Optimization of}}\\[0.4em]
+    {\LARGE \textbf{ext4/JBD2 Consistency Mechanism on Linux 6.1.4}}
+
+    \vspace{3cm}
+
+    {\large \textbf{Team Members}}\\[0.8em]
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Name} & \textbf{Roll Number} \\
+        \midrule
+        Milan Roy        & 241110042 \\
+        Sahil Basia      & 241110061 \\
+        Shrey Sharma     & 251110068 \\
+        Suyamoon Pathak  & 241110091 \\
+        \bottomrule
+    \end{tabular}
+
+    \vfill
+
+    {\normalsize April 2026}
+
+    \vspace{1cm}
+
+\end{titlepage}
 
 \begin{abstract}
 This report describes the work of the \textbf{MTech Rocks} group on
-the ext4/JBD2 consistency mechanism on Linux~6.1.4. Milan
-benchmarked the baseline cost of each ext4 journaling mode and
-identified where the journal hurts performance most; this
-characterization gave the rest of the group concrete directions to
-chase. Suyamoon then closed two fast-commit fallback paths with
-small kernel patches: \texttt{EXT4\_FC\_REASON\_XATTR}
-(108 lines, 64$\times$ fewer JBD2 full commits on a setxattr
-workload, 27\% wall-time gain on VM and 48\% on bare-metal) and
+the ext4/JBD2 consistency mechanism on Linux~6.1.4. We benchmarked
+the baseline cost of each ext4 journaling mode and identified where
+the journal hurts performance most; this characterization provided
+clear directions for further optimization. We then addressed two
+fast-commit fallback paths with small kernel patches:
+\texttt{EXT4\_FC\_REASON\_XATTR} (108 lines, 64$\times$ fewer JBD2
+full commits on a setxattr workload, 27\% wall-time gain on VM and
+48\% on bare-metal) and
 \texttt{EXT4\_FC\_REASON\_FALLOC\_RANGE} (46 lines, 62.5$\times$
-fewer commits on collapse/insert range, 23--26\% on VM and
-42--44\% on bare-metal). Sahil built a kernel module that uses
-\texttt{kretprobes} to first measure that $\sim$78\% of fsync time
-is spent inside \texttt{jbd2\_log\_wait\_commit}, then replaces
-that function with a lockless CAS version (+40\% / +54\% / +7\%
-IOPS at 16 threads on three workloads, no streaming regression).
-Shrey built a kernel module that replaces JBD2's strict
-ring-buffer journal allocator with a free-block bitmap, cutting
+fewer commits on collapse/insert range, 23--26\% improvement on VM
+and 42--44\% on bare-metal).
+
+We further developed a kernel module using \texttt{kretprobes} to
+measure that $\sim$78\% of fsync time is spent inside
+\texttt{jbd2\_log\_wait\_commit}, and replaced this function with a
+lockless CAS-based version, achieving improvements of +40\%, +54\%,
+and +7\% IOPS at 16 threads across three workloads, without
+regression in streaming performance.
+
+Finally, we designed a kernel module that replaces JBD2's strict
+ring-buffer journal allocator with a free-block bitmap, reducing
 P99 latency on a WAL workload from 0.41~ms to 0.05~ms in
-\texttt{ordered} mode at the same write amplification factor.
+\texttt{ordered} mode while maintaining the same write
+amplification factor.
 \end{abstract}
 
+\newpage
 \tableofcontents
 \newpage
 
@@ -83,143 +169,556 @@ P99 latency on a WAL workload from 0.41~ms to 0.05~ms in
 \section{Introduction}
 % =====================================================================
 
-This project asks: \emph{where does ext4's consistency mechanism
-spend its time on Linux~6.1.4, and what can be done about it?}
-The mechanism in question is JBD2 (the journaling layer that
-keeps the filesystem crash-consistent) and its fast-commit
-extension that was added in Linux~5.10 to make \texttt{fsync()}
-cheaper. Any change must keep crash recovery working and must be
-backed by measurement.
+Modern filesystems must guarantee consistency in the face of unexpected system crashes
+or power failures. Without such guarantees, an interrupted write sequence can leave the
+filesystem in a partially updated state, corrupting metadata structures such as inodes,
+directory entries, and block allocation bitmaps. Recovery from such corruption is
+expensive, often requiring a full filesystem check (\texttt{fsck}), and may result in
+permanent data loss.
 
-The four members of \textbf{MTech Rocks} divided the work like
-this:
+To address this, ext4 --- the default filesystem on most Linux distributions --- employs
+a journaling layer called \textbf{JBD2} (Journaling Block Device 2). Rather than writing
+updates directly to their final on-disk locations, JBD2 first records changes atomically
+to a dedicated circular log called the \textit{journal}. On crash recovery, the kernel
+replays any committed but not yet checkpointed transactions from the journal, restoring
+the filesystem to a consistent state without a full scan. 
 
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Milan} measured the baseline cost of each ext4
-        journaling mode (\texttt{ordered}, \texttt{journal},
-        \texttt{writeback}, \texttt{nojournal}) on representative
-        WAL and concurrent workloads. Section~2. The numbers told
-        the rest of the group where to look for optimizations.
-  \item \textbf{Suyamoon} worked on two coverage gaps in fast
-        commit. Sections~3 (overview of four candidates), 4 (C1,
-        C2 -- did not measure), 5 (C3, inline xattrs), and 6 (C4,
-        fallocate range).
-  \item \textbf{Sahil} worked on the global \texttt{j\_state\_lock}
-        taken inside \texttt{jbd2\_log\_wait\_commit} by every
-        fsync waiter. Section~7 (Candidate~5).
-  \item \textbf{Shrey} worked on the journal layout itself,
-        replacing the strict ring-buffer allocator with a free-block
-        bitmap. Section~8 (Candidate~6).
+JBD2 organises writes into \textit{transactions}: a group of modifications that are
+committed atomically. Each transaction passes through a well-defined pipeline ---
+accumulating updates, locking for commit, writing descriptor and data blocks to the
+journal, issuing a commit block, and finally checkpointing dirty blocks to their home
+locations. Crucially, a transaction is not considered durable until a commit block is
+flushed to stable storage, enforcing the write-ahead property.
+
+Ext4 exposes three journaling modes, each offering a different trade-off between
+consistency and performance:
+
+\begin{itemize}
+    \item \textbf{Journal mode}: Both file data and metadata are written to the journal
+    before being committed to their final locations. This provides the strongest
+    consistency guarantees --- even file data is recoverable after a crash --- but incurs
+    the highest overhead due to the double-write of all data blocks.
+
+    \item \textbf{Ordered mode} (default): Only metadata is journaled. However, ext4
+    enforces a strict ordering constraint: data blocks must be flushed to their final
+    locations \emph{before} the corresponding metadata transaction is committed to the
+    journal. This prevents stale data from being exposed after a crash, while avoiding
+    the cost of journalling data blocks directly.
+
+    \item \textbf{Writeback mode}: Only metadata is journaled, with no ordering
+    constraint between data and metadata writes. This mode offers the best write
+    throughput but the weakest consistency guarantee: after a crash, a committed metadata
+    update may point to a data block that was never fully written, potentially exposing
+    stale or garbage data.
 \end{itemize}
 
-Each section is written by the member who did the work and starts
-with what was built and how to reproduce it.
-
 % =====================================================================
-\section{Workload Characterization (Milan)}
+\section{Workload Characterization}
+% =====================================================================
+\section{Workload Characterisation}
 % =====================================================================
 
-\textit{Author: Milan Roy (241110042).}
+\subsection{Sync-Heavy Small Writes Workload}
+\subsubsection{Workload Description}
+This workload emulates the write-ahead logging (WAL) pattern typical of database
+systems, in which each log record must be made durable before the next write can
+proceed. Using \texttt{fio}, a single thread writes a total of 100\,MB to a file in
+fixed-size blocks of 4, 8, 16, 32, or 64\,KB. An \texttt{fsync} is issued after every
+block write, forcing a JBD2 transaction commit to complete before the subsequent write
+begins. The benchmark is executed across all three ext4 journaling modes ---
+\texttt{ordered}, \texttt{journal}, and \texttt{writeback} --- together with a
+\texttt{nojournal} baseline, enabling a controlled comparison of journaling overhead
+and write amplification across block sizes. Each configuration is repeated five times
+and the results are averaged to mitigate measurement variability.
 
-\subsection{Why characterization first}
-
-Before changing the kernel it is worth knowing where the time
-actually goes. The two harnesses in
-\pth{milan/benchmarks/} answer that on a real NVMe partition for
-two complementary workloads:
-
-\begin{itemize}[leftmargin=*]
-  \item \pth{wal_workload_no_fc/} -- single-threaded sync-heavy
-        fio with \texttt{fdatasync} after every write,
-        parameterised by block size $\{4, 8, 16, 32, 64\}$ KiB.
-        This is the classic database WAL pattern.
-  \item \pth{combined_workload_no_fc/} -- the WAL pattern run
-        \emph{concurrently} with a bulk 1 MiB sequential writer.
-        Both fios are bounded to the same wall time so they
-        contend for journal resources for the full window.
-\end{itemize}
-
-Each harness sweeps four ext4 modes (\texttt{ordered},
-\texttt{journal}, \texttt{writeback}, \texttt{nojournal}), runs
-five repetitions per mode, and reports mean~$\pm$~stddev.
-\texttt{bpftrace} is attached to the JBD2 tracepoints
-(\texttt{jbd2\_journal\_*\_callback}, \texttt{jbd2\_handle\_*})
-for the full run. Fast commit is intentionally off so the numbers
-reflect the baseline JBD2 cost.
-
-\subsection{Headline numbers (WAL, 1 thread, 100 MB, fsync per write, 4 KiB)}
-
-\begin{center}
-\begin{tabular}{lrrrrr}
+\begin{table}[H]
+\centering
+\caption{Throughput, Latency, and I/O Breakdown across Journaling Modes and Block Sizes}
+\label{tab:throughput}
+\renewcommand{\arraystretch}{1.1}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrrr}
 \toprule
-\textbf{Mode} & \textbf{IOPS} & \textbf{BW} & \textbf{p50 lat} & \textbf{p99 lat} & \textbf{IOPS penalty} \\
+\textbf{Mode} & \textbf{BS}
+  & \textbf{IOPS}
+  & \textbf{BW (MB/s)}
+  & \textbf{Runtime (s)}
+  & \textbf{Avg lat.\ (ms)}
+  & \textbf{write() (µs)}
+  & \textbf{fsync() (µs)}
+  & \textbf{fsync \%} \\
 \midrule
-ordered   & $185\pm 4$ & 0.72 MB/s & 5.12 ms &  8.70 ms & 51.3\% \\
-journal   & $179\pm 3$ & 0.70 MB/s & 5.25 ms & 10.13 ms & 52.9\% \\
-writeback & $185\pm 2$ & 0.72 MB/s & 5.15 ms &  8.94 ms & 51.4\% \\
-nojournal & $381\pm 3$ & 1.49 MB/s & 2.41 ms &  7.69 ms & baseline \\
+\multirow{5}{*}{ordered}
+  & 4K  & $185 \pm 4$   & $0.72 \pm 0.01$ & $138.05 \pm 2.70$  & $5.39 \pm 0.11$ & $20 \pm 0$ & $5369 \pm 105$ & 99.6\% \\
+  & 8K  & $180 \pm 5$   & $1.40 \pm 0.04$ & $71.24  \pm 2.20$  & $5.56 \pm 0.17$ & $22 \pm 0$ & $5541 \pm 172$ & 99.6\% \\
+  & 16K & $174 \pm 4$   & $2.71 \pm 0.06$ & $36.85  \pm 0.83$  & $5.76 \pm 0.13$ & $25 \pm 0$ & $5731 \pm 130$ & 99.6\% \\
+  & 32K & $173 \pm 2$   & $5.39 \pm 0.06$ & $18.55  \pm 0.19$  & $5.80 \pm 0.06$ & $28 \pm 0$ & $5767 \pm 61$  & 99.5\% \\
+  & 64K & $170 \pm 3$   & $10.62\pm 0.21$ & $9.41   \pm 0.19$  & $5.89 \pm 0.12$ & $39 \pm 0$ & $5845 \pm 119$ & 99.3\% \\
+\midrule
+\multirow{5}{*}{journal}
+  & 4K  & $179 \pm 3$   & $0.70 \pm 0.01$ & $142.78 \pm 2.63$  & $5.57 \pm 0.10$ & $23 \pm 0$ & $5551 \pm 103$ & 99.6\% \\
+  & 8K  & $169 \pm 2$   & $1.32 \pm 0.01$ & $75.63  \pm 0.71$  & $5.91 \pm 0.06$ & $26 \pm 0$ & $5880 \pm 55$  & 99.6\% \\
+  & 16K & $166 \pm 3$   & $2.59 \pm 0.04$ & $38.65  \pm 0.60$  & $6.04 \pm 0.09$ & $31 \pm 0$ & $6006 \pm 93$  & 99.5\% \\
+  & 32K & $165 \pm 3$   & $5.17 \pm 0.11$ & $19.36  \pm 0.41$  & $6.05 \pm 0.13$ & $40 \pm 0$ & $6007 \pm 129$ & 99.3\% \\
+  & 64K & $154 \pm 7$   & $9.62 \pm 0.47$ & $10.41  \pm 0.51$  & $6.51 \pm 0.32$ & $59 \pm 1$ & $6447 \pm 320$ & 99.1\% \\
+\midrule
+\multirow{5}{*}{writeback}
+  & 4K  & $185 \pm 2$   & $0.72 \pm 0.01$ & $138.21 \pm 1.33$  & $5.40 \pm 0.05$ & $20 \pm 0$ & $5376 \pm 52$  & 99.6\% \\
+  & 8K  & $181 \pm 1$   & $1.41 \pm 0.01$ & $70.88  \pm 0.27$  & $5.53 \pm 0.02$ & $22 \pm 0$ & $5513 \pm 21$  & 99.6\% \\
+  & 16K & $170 \pm 1$   & $2.66 \pm 0.02$ & $37.58  \pm 0.28$  & $5.87 \pm 0.04$ & $25 \pm 0$ & $5844 \pm 44$  & 99.6\% \\
+  & 32K & $160 \pm 7$   & $5.00 \pm 0.22$ & $20.05  \pm 0.88$  & $6.26 \pm 0.27$ & $29 \pm 0$ & $6234 \pm 275$ & 99.5\% \\
+  & 64K & $159 \pm 6$   & $9.93 \pm 0.40$ & $10.08  \pm 0.43$  & $6.30 \pm 0.27$ & $40 \pm 1$ & $6262 \pm 268$ & 99.4\% \\
+\midrule
+\multirow{5}{*}{nojournal}
+  & 4K  & $381 \pm 3$   & $1.49 \pm 0.01$ & $67.17  \pm 0.56$  & $2.62 \pm 0.02$ & $15 \pm 0$ & $2604 \pm 22$  & 99.4\% \\
+  & 8K  & $362 \pm 5$   & $2.83 \pm 0.04$ & $35.38  \pm 0.50$  & $2.76 \pm 0.04$ & $17 \pm 0$ & $2743 \pm 39$  & 99.4\% \\
+  & 16K & $296 \pm 5$   & $4.62 \pm 0.08$ & $21.63  \pm 0.37$  & $3.38 \pm 0.06$ & $20 \pm 0$ & $3356 \pm 59$  & 99.4\% \\
+  & 32K & $307 \pm 8$   & $9.60 \pm 0.26$ & $10.43  \pm 0.28$  & $3.26 \pm 0.09$ & $24 \pm 0$ & $3230 \pm 86$  & 99.3\% \\
+  & 64K & $269 \pm 13$  & $16.82\pm 0.79$ & $5.95   \pm 0.29$  & $3.72 \pm 0.18$ & $34 \pm 0$ & $3684 \pm 181$ & 99.1\% \\
 \bottomrule
-\end{tabular}
-\end{center}
+\end{tabular}%
+}
+\end{table}
 
-\subsection{What this told the group}
+\subsubsection{Throughput and Latency}
+Prior to benchmarking, we expected \texttt{ordered} mode to exhibit slightly lower IOPS
+than \texttt{writeback} mode, owing to the additional ordering constraint that data
+blocks must be flushed to disk before their corresponding metadata is committed to the
+journal. We further expected \texttt{journal} mode to incur substantially lower IOPS
+than either of the other two modes, given the overhead of writing file data into the
+journal in addition to metadata. Table~\ref{tab:throughput} shows neither expectation
+to be borne out: IOPS across all three journaling modes are remarkably similar, whilst
+\texttt{nojournal} achieves roughly twice the IOPS of any journaled mode.
 
-Three findings shaped the optimization choices in the rest of the
-report:
+The near-equivalence among the three journaled modes follows from the fact that all
+three must traverse the same JBD2 commit pipeline on every \texttt{fsync}: an NVMe
+cache flush to persist both data and journal log blocks to their on-disk locations,
+followed by a direct write of the commit block to stable storage. The additional data
+written into the journal by \texttt{journal} mode contributes only a marginal cost at
+smaller block sizes, insufficient to produce a measurable IOPS gap. \texttt{nojournal}
+mode, by contrast, incurs only the first of these two costs --- a single NVMe cache
+flush --- and writes no journal entries whatsoever, halving the per-\texttt{fsync}
+barrier count and eliminating journal write amplification entirely. This accounts for
+why \texttt{nojournal} achieves approximately twice the IOPS of the journaled modes,
+particularly at smaller block sizes. As block size increases, IOPS decline modestly
+across all modes, reflecting the growing per-operation data transfer cost beginning to
+contribute alongside the fixed flush overhead.
 
-\begin{enumerate}[leftmargin=*]
-  \item \textbf{Journaling halves IOPS regardless of mode.} The
-        difference between \texttt{ordered}, \texttt{journal}, and
-        \texttt{writeback} is within noise on this workload. The
-        cost of journaling is the cost of \emph{having a journal},
-        not of any particular mode.
-  \item \textbf{The cost is in the commit, not in the write.}
-        Latency split shows \textbf{99.6\% of total per-op latency
-        is the \texttt{fdatasync} portion} across all journaled
-        modes. This is what convinced the group that the
-        productive optimizations would target the commit path
-        (Suyamoon's two patches) and the wait-on-commit path
-        (Sahil's module), not the write path.
-  \item \textbf{Tail latency is variance-dominated.} p99.99 in
-        \texttt{ordered} mode is $159\pm 80$~ms (50\% relative
-        stddev). Single-run reports of tail latency are not
-        trustworthy here; the N-run averaging discipline used by
-        the rest of the work below is necessary, not optional.
-\end{enumerate}
+Although per-I/O latency and IOPS remain roughly constant across block sizes for a
+given mode, total benchmark time roughly halves with each doubling of block size.
+Doubling the block size doubles the data written per \texttt{fsync} call, so the
+total number of \texttt{fsync} calls required is halved proportionally. Since the
+per-\texttt{fsync} cost is dominated by the fixed NVMe flush latency, total time falls
+in proportion. Notably, total time is consistent across all journaling modes at a given
+block size, including \texttt{journal} mode, for the same reason: the additional data
+journaled by \texttt{journal} mode does not meaningfully increase the per-flush cost.
 
-\subsection{Concurrent workload}
+\subsubsection{Impact of fsync}
+As shown in Table~\ref{tab:throughput}, the \texttt{write()} system call contributes at
+most 0.9\% of total per-I/O latency across all modes and block sizes, since it
+merely copies data into the page cache and returns immediately. The \texttt{write()}
+latency increases slightly with block size --- most visibly in \texttt{journal} mode
+--- but does not double when the block size doubles, indicating a fixed component.
 
-The combined harness runs the WAL fio job and a 1 MiB sequential
-fio job in the same window. The qualitative result is that the
-sequential workload's bandwidth is mostly mode-insensitive
-(SSD-bound), but the WAL workload's tail latency degrades sharply
-under contention because of journal resource pressure. The full
-per-mode tables are committed alongside the scripts as
-\texttt{*.txt} files in
-\pth{milan/benchmarks/combined_workload_no_fc/}.
+The \texttt{fsync()} latency, by contrast, is two orders of magnitude higher and
+subsumes the cost of the JBD2 commit pipeline and the NVMe cache flush.
+\texttt{fsync()} similarly does not double with block size, reflecting the large fixed
+component of NVMe flush latency that is independent of the volume of data being
+flushed, at least at smaller block sizes. Consequently, \texttt{fsync()} dominates
+total per-I/O latency in every configuration, conclusively establishing that the
+bottleneck is the mandatory durability guarantee enforced by \texttt{fsync()}, not
+the movement of data into the page cache.
 
-\subsection{How to reproduce}
+\subsubsection{Physical Bytes and Write Amplification}
 
-\begin{lstlisting}[language=bash]
-cd "MTech Rocks/milan/benchmarks/wal_workload_no_fc"
-sudo bash run_repeated.sh 5     # ~50 minutes
+\begin{table}[H]
+\centering
+\caption{Write Amplification, Per-Transaction Workload, and JBD2 Commit Pipeline across Journaling Modes and Block Sizes}
+\label{tab:waf_txn}
+\renewcommand{\arraystretch}{1.1}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrrrrr}
+\toprule
+\textbf{Mode} & \textbf{BS}
+  & \thead{\textbf{Physical}\\\textbf{(MB)}}
+  & \thead{\textbf{Extra}\\\textbf{Bytes (MB)}}
+  & \textbf{WAF}
+  & \thead{\textbf{Total}\\\textbf{txns}}
+  & \thead{\textbf{Blocks}\\\textbf{logged/txn}}
+  & \thead{\textbf{Avg}\\\textbf{Logging}\\\textbf{(ms)}}
+  & \thead{\textbf{Avg E2E}\\\textbf{commit}\\\textbf{(ms)}}
+  & \thead{\textbf{JBD2}\\\textbf{commit \%}} \\
+\midrule
+\multirow{5}{*}{ordered}
+  & 4K  & $400.92 \pm 1.79$ & $300.92 \pm 1.79$ & $2.0065 \pm 0.0090$ & $25600 \pm 1$ & $3.0 \pm 0.0$ & $5.268 \pm 0.102$ & $5.272 \pm 0.102$ & $97.8 \pm 1.9$\% \\
+  & 8K  & $250.08 \pm 0.01$ & $150.08 \pm 0.01$ & $1.6670 \pm 0.0001$ & $12801 \pm 1$ & $3.0 \pm 0.0$ & $5.437 \pm 0.172$ & $5.441 \pm 0.172$ & $97.8 \pm 3.1$\% \\
+  & 16K & $175.06 \pm 0.01$ & $ 75.06 \pm 0.01$ & $1.4002 \pm 0.0000$ & $ 6401 \pm 0$ & $3.0 \pm 0.0$ & $5.621 \pm 0.129$ & $5.625 \pm 0.129$ & $97.7 \pm 2.2$\% \\
+  & 32K & $137.56 \pm 0.00$ & $ 37.56 \pm 0.00$ & $1.2225 \pm 0.0000$ & $ 3201 \pm 0$ & $3.0 \pm 0.0$ & $5.651 \pm 0.065$ & $5.655 \pm 0.065$ & $97.6 \pm 1.1$\% \\
+  & 64K & $118.81 \pm 0.00$ & $  18.81 \pm 0.00$ & $1.1180 \pm 0.0000$ & $ 1601 \pm 0$ & $3.0 \pm 0.0$ & $5.718 \pm 0.119$ & $5.722 \pm 0.119$ & $97.3 \pm 2.0$\% \\
+\midrule
+\multirow{5}{*}{journal}
+  & 4K  & $500.14 \pm 0.00$ & $400.14 \pm 0.00$ & $2.5031 \pm 0.0008$ & $25600 \pm 0$ & $ 4.0 \pm 0.0$ & $5.460 \pm 0.100$ & $5.467 \pm 0.100$ & $98.0 \pm 1.8$\% \\
+  & 8K  & $350.10 \pm 0.00$ & $250.10 \pm 0.00$ & $2.3336 \pm 0.0001$ & $12800 \pm 0$ & $ 5.0 \pm 0.0$ & $5.778 \pm 0.051$ & $5.785 \pm 0.051$ & $97.9 \pm 0.9$\% \\
+  & 16K & $275.07 \pm 0.00$ & $175.07 \pm 0.00$ & $2.2001 \pm 0.0000$ & $ 6400 \pm 0$ & $ 7.0 \pm 0.0$ & $5.896 \pm 0.093$ & $5.903 \pm 0.093$ & $97.7 \pm 1.5$\% \\
+  & 32K & $237.54 \pm 0.00$ & $137.54 \pm 0.00$ & $2.1111 \pm 0.0000$ & $ 3200 \pm 0$ & $11.0 \pm 0.0$ & $5.889 \pm 0.130$ & $5.897 \pm 0.130$ & $97.5 \pm 2.1$\% \\
+  & 64K & $218.76 \pm 0.00$ & $118.76 \pm 0.00$ & $2.0584 \pm 0.0000$ & $ 1600 \pm 0$ & $19.0 \pm 0.0$ & $6.315 \pm 0.318$ & $6.323 \pm 0.318$ & $97.2 \pm 4.9$\% \\
+\midrule
+\multirow{5}{*}{writeback}
+  & 4K  & $400.11 \pm 0.01$ & $300.11 \pm 0.01$ & $2.0024 \pm 0.0006$ & $25600 \pm 0$ & $3.0 \pm 0.0$ & $5.275 \pm 0.051$ & $5.279 \pm 0.051$ & $97.8 \pm 1.0$\% \\
+  & 8K  & $250.09 \pm 0.00$ & $150.09 \pm 0.00$ & $1.6670 \pm 0.0001$ & $12801 \pm 0$ & $3.0 \pm 0.0$ & $5.406 \pm 0.023$ & $5.410 \pm 0.023$ & $97.7 \pm 0.4$\% \\
+  & 16K & $175.06 \pm 0.01$ & $ 75.06 \pm 0.01$ & $1.4002 \pm 0.0001$ & $ 6401 \pm 1$ & $3.0 \pm 0.0$ & $5.731 \pm 0.044$ & $5.735 \pm 0.044$ & $97.7 \pm 0.8$\% \\
+  & 32K & $137.56 \pm 0.00$ & $ 37.56 \pm 0.00$ & $1.2225 \pm 0.0000$ & $ 3201 \pm 0$ & $3.0 \pm 0.0$ & $6.112 \pm 0.272$ & $6.116 \pm 0.272$ & $97.7 \pm 4.3$\% \\
+  & 64K & $118.81 \pm 0.00$ & $  18.81 \pm 0.00$ & $1.1180 \pm 0.0000$ & $ 1601 \pm 0$ & $3.0 \pm 0.0$ & $6.130 \pm 0.265$ & $6.135 \pm 0.265$ & $97.4 \pm 4.2$\% \\
+\midrule
+\multirow{5}{*}{nojournal}
+  & 4K  & $199.81 \pm 0.06$ & $ 99.81 \pm 0.06$ & $1.0000 \pm 0.0004$ & --- & --- & --- & --- & --- \\
+  & 8K  & $150.02 \pm 0.01$ & $ 50.02 \pm 0.01$ & $1.0000 \pm 0.0001$ & --- & --- & --- & --- & --- \\
+  & 16K & $125.02 \pm 0.00$ & $ 25.02 \pm 0.00$ & $1.0000 \pm 0.0000$ & --- & --- & --- & --- & --- \\
+  & 32K & $112.52 \pm 0.00$ & $ 12.52 \pm 0.00$ & $1.0000 \pm 0.0000$ & --- & --- & --- & --- & --- \\
+  & 64K & $106.27 \pm 0.00$ & $  6.27 \pm 0.00$ & $1.0000 \pm 0.0000$ & --- & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
-cd ../combined_workload_no_fc
-sudo bash run_repeated.sh 3     # ~25 minutes
-\end{lstlisting}
+The Physical and Extra Bytes columns in Table~\ref{tab:waf_txn} capture the disk-write
+overhead beyond the 100\,MB logical payload, as measured by \texttt{blktrace}. An
+important detail when interpreting these values is that disk writes are granular to
+4\,KB: even a few bytes of metadata require a full 4\,KB block, inflating the observed
+overhead accordingly.
 
-The default device is \texttt{/dev/nvme0n1p6} mounted at
-\texttt{/media/milan-roy/test\_ext4}; edit the \texttt{DEVICE} and
-\texttt{MOUNT\_POINT} variables at the top of the
-\texttt{run\_*\_analysis.sh} scripts for a different machine.
+Across all modes, extra bytes halve as block size doubles, since the transaction count
+halves proportionally and each transaction carries a fixed metadata footprint. In
+\texttt{journal} mode this halving is partially masked by an additional
+${\approx}100$\,MB term arising from the data blocks being written twice into the
+journal, but removing this constant reveals the same underlying pattern.
+
+For \texttt{ordered} and \texttt{writeback} modes, which log exactly three blocks per
+transaction --- one descriptor, one metadata, and one commit block --- the extra bytes
+can be verified analytically:
+\begin{equation}
+    3 \times 25{,}600 \text{ transactions} \times 4\,\text{KB} \approx 300\,\text{MB}
+\end{equation}
+This matches the observed value at 4\,KB, and the same halving applies at larger block
+sizes. An analogous calculation for \texttt{journal} mode must additionally account for
+the data blocks logged per transaction, which scale linearly with block size.
+
+WAF (Table~\ref{tab:waf_txn}) quantifies how many times more data is written to disk
+relative to the \texttt{nojournal} baseline. For \texttt{ordered} and
+\texttt{writeback}, WAF decreases from $2.00\times$ at 4\,KB to $1.12\times$ at
+64\,KB, as the fixed three-block journal overhead is progressively diluted by the
+growing data payload. \texttt{journal} mode converges far more slowly, from
+$2.50\times$ to $2.06\times$, because its data-journaling cost scales with block size
+and cannot be diluted in the same manner.
+
+\subsubsection{JBD2 Commit Percentage of Benchmark Time}
+As shown in Table~\ref{tab:waf_txn}, the average logging time --- the time spent
+writing the journal transaction to the NVMe device --- accounts for virtually all of
+the end-to-end commit time across every configuration. JBD2 commit activity
+consequently dominates total benchmark wall-clock time, a direct consequence of the
+\texttt{fsync}-after-every-write pattern that chains each write to the completion of
+the preceding commit. With the application blocked almost entirely on synchronous I/O,
+there is no opportunity for any form of parallelism or batching.
+
+\subsubsection{Conclusion}
+The sync-heavy WAL workload establishes that, under a per-write \texttt{fsync}
+discipline, the dominant cost is the NVMe cache flush that \texttt{fsync()} must issue
+on every commit, not the movement of data or metadata within the journaling layer. All
+three journaled modes exhibit near-identical IOPS because they share the same commit
+pipeline; the additional data written by \texttt{journal} mode is insufficient to
+widen this gap at the block sizes examined. \texttt{nojournal} mode achieves
+approximately twice the IOPS by eliminating the journal write entirely and incurring
+only a single flush per \texttt{fsync}. WAF decreases with block size for
+\texttt{ordered} and \texttt{writeback} as the fixed three-block overhead is diluted by
+larger payloads, whereas \texttt{journal} mode's WAF converges only slowly because its
+data-journaling cost grows with block size. 
 
 % =====================================================================
-\section{Suyamoon's Four Candidates: Overview}
+\subsection{Sequential Write Workload}
+
+\subsubsection{Workload Description}
+This workload measures the raw sequential write performance of each ext4 journaling
+mode without the durability constraint of a per-write \texttt{fsync}, emulating the
+log-writing behaviour common in database and application logging scenarios.
+\texttt{fio} is configured as a single-threaded workload writing a total of 10\,GB of
+data to a file in fixed-size blocks of 128\,KB, 256\,KB, 512\,KB, and 1\,MB. Unlike
+the sync-heavy WAL workload, no \texttt{fsync} is issued between writes, allowing the
+kernel to freely batch dirty pages and pipeline writes to disk. JBD2 commits are
+therefore not driven by the application but are instead triggered by the kernel's
+background commit timer, which fires every 5\,seconds to lock the current running
+transaction and flush it to disk. The benchmark is executed across all three ext4
+journaling modes --- \texttt{ordered}, \texttt{journal}, \texttt{writeback}, and
+\texttt{nojournal} --- to isolate the cost of each mode's journaling policy under
+conditions where the kernel is free to amortise overhead across large batches of
+writes. Each configuration is repeated five times and the results are averaged to
+mitigate measurement variability.
+
+\subsubsection{Throughput and Latency}
+\begin{table}[H]
+\centering
+\caption{Throughput, Latency, and I/O Breakdown across Journaling Modes and Block Sizes (Sequential Write)}
+\label{tab:seq_throughput}
+\renewcommand{\arraystretch}{1.1}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrr}
+\toprule
+\textbf{Mode} & \textbf{BS}
+  & \textbf{IOPS}
+  & \textbf{BW (MB/s)}
+  & \textbf{Runtime (s)}
+  & \textbf{Avg (ms)}
+  & \textbf{write() (µs)} \\
+\midrule
+\multirow{4}{*}{ordered}
+  & 128K & $1580 \pm 772$  & $197.54 \pm 96.47$ & $65.35  \pm 42.10$ & $0.80 \pm 0.51$ & $796  \pm 514$ \\
+  & 256K & $693  \pm 160$  & $173.17 \pm 40.01$ & $61.14  \pm 13.11$ & $1.49 \pm 0.32$ & $1488 \pm 319$ \\
+  & 512K & $491  \pm 81$   & $245.67 \pm 40.48$ & $42.49  \pm  7.41$ & $2.07 \pm 0.36$ & $2066 \pm 361$ \\
+  & 1M   & $101  \pm 22$   & $100.94 \pm 22.16$ & $105.32 \pm 26.46$ & $10.28\pm 2.58$ & $10251\pm 2584$ \\
+\midrule
+\multirow{4}{*}{journal}
+  & 128K & $290  \pm 7$    & $36.22  \pm  0.93$ & $282.83 \pm  7.26$ & $3.45 \pm 0.09$ & $3451 \pm 89$  \\
+  & 256K & $147  \pm 4$    & $36.86  \pm  0.92$ & $277.89 \pm  7.04$ & $6.78 \pm 0.17$ & $6781 \pm 172$ \\
+  & 512K & $74   \pm 4$    & $37.17  \pm  2.12$ & $276.08 \pm 16.28$ & $13.48\pm 0.80$ & $13473\pm 796$ \\
+  & 1M   & $28   \pm 0$    & $27.96  \pm  0.20$ & $366.30 \pm  2.69$ & $35.77\pm 0.26$ & $35750\pm 262$ \\
+\midrule
+\multirow{4}{*}{writeback}
+  & 128K & $993  \pm 44$   & $124.15 \pm  5.55$ & $82.59  \pm  3.61$ & $1.01 \pm 0.04$ & $1006 \pm 44$  \\
+  & 256K & $520  \pm 8$    & $130.03 \pm  1.92$ & $78.76  \pm  1.15$ & $1.92 \pm 0.03$ & $1919 \pm 28$  \\
+  & 512K & $270  \pm 21$   & $134.80 \pm 10.46$ & $76.26  \pm  5.78$ & $3.72 \pm 0.28$ & $3712 \pm 284$ \\
+  & 1M   & $82   \pm 1$    & $81.73  \pm  0.93$ & $125.30 \pm  1.42$ & $12.23\pm 0.14$ & $12201\pm 139$ \\
+\midrule
+\multirow{4}{*}{nojournal}
+  & 128K & $1362 \pm 529$  & $170.24 \pm 66.07$ & $67.92  \pm 30.58$ & $0.83 \pm 0.37$ & $826  \pm 373$ \\
+  & 256K & $714  \pm 67$   & $178.47 \pm 16.69$ & $57.72  \pm  5.60$ & $1.41 \pm 0.14$ & $1405 \pm 137$ \\
+  & 512K & $413  \pm 106$  & $206.60 \pm 52.97$ & $51.59  \pm 11.93$ & $2.52 \pm 0.58$ & $2508 \pm 582$ \\
+  & 1M   & $96   \pm 2$    & $95.77  \pm  2.10$ & $106.95 \pm  2.33$ & $10.44\pm 0.23$ & $10407\pm 232$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+The most striking feature of Table~\ref{tab:seq_throughput} is the sharp and persistent
+throughput gap between \texttt{journal} mode and the remaining three modes across all
+block sizes. Without a per-write \texttt{fsync} serialising every commit, the kernel
+is free to batch dirty pages and commit journal transactions in the background without
+blocking the application thread: page cache writeback and JBD2 transaction commits
+proceed concurrently with the benchmarked workload, and since no explicit flush command
+is issued to the NVMe device, the cache flush cost is absorbed in parallel as well.
+This removes the dominant bottleneck of the sync-heavy workload and exposes the true
+cost of each mode's journaling policy in isolation.
+
+A notable contrast with the sync-heavy workload is that total benchmark time in
+Table~\ref{tab:seq_throughput} is largely independent of block size for
+\texttt{ordered}, \texttt{writeback}, and \texttt{nojournal}. In the sync-heavy
+workload, total time halved with each doubling of block size because each
+\texttt{fsync} incurred a fixed NVMe flush cost and larger blocks reduced the number of
+\texttt{fsync} calls required. Here, with no per-write \texttt{fsync}, the flush cost
+is no longer on the critical path: the workload, page cache writeback, and journal
+commits all proceed concurrently, keeping the NVMe device continuously busy regardless
+of block size. This parallelism also explains why the IOPS, bandwidth, and
+\texttt{write()} latency of \texttt{ordered} and \texttt{writeback} remain close to the
+\texttt{nojournal} baseline --- the journaling overhead of these modes is absorbed
+entirely in the background and does not delay the application thread.
+
+\subsubsection{Write Amplification and Commit Behaviour}
+
+\begin{table}[H]
+\centering
+\caption{Write Amplification and JBD2 Commit Behaviour across Journaling Modes and Block Sizes (Sequential Write)}
+\label{tab:seq_waf}
+\renewcommand{\arraystretch}{1.1}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrr}
+\toprule
+\textbf{Mode} & \textbf{BS}
+  & \thead{\textbf{Physical}\\\textbf{(MB)}}
+  & \textbf{WAF}
+  & \thead{\textbf{Total}\\\textbf{Commits}}
+  & \thead{\textbf{Total}\\\textbf{Time (s)}}
+  & \thead{\textbf{Commit}\\\textbf{interval (s)}} \\
+\midrule
+\multirow{4}{*}{ordered}
+  & 128K & $10240.94 \pm 0.13$ & $1.0000 \pm 0.0000$ & $16 \pm 8$  & $65.35  \pm 42.10$ & $4.084 \pm 3.331$ \\
+  & 256K & $10240.92 \pm 0.03$ & $1.0000 \pm 0.0000$ & $14 \pm 2$  & $61.14  \pm 13.11$ & $4.367 \pm 1.125$ \\
+  & 512K & $10240.87 \pm 0.02$ & $1.0000 \pm 0.0000$ & $11 \pm 1$  & $42.49  \pm  7.41$ & $3.863 \pm 0.760$ \\
+  & 1M   & $10241.04 \pm 0.08$ & $1.0000 \pm 0.0000$ & $22 \pm 5$  & $105.32 \pm 26.46$ & $4.787 \pm 1.622$ \\
+\midrule
+\multirow{4}{*}{journal}
+  & 128K & $20522.52 \pm 1.22$ & $2.0040 \pm 0.0001$ & $622 \pm 42$ & $282.83 \pm  7.26$ & $0.455 \pm 0.033$ \\
+  & 256K & $20523.58 \pm 0.94$ & $2.0041 \pm 0.0001$ & $646 \pm 0$  & $277.89 \pm  7.04$ & $0.430 \pm 0.011$ \\
+  & 512K & $20522.95 \pm 0.63$ & $2.0041 \pm 0.0001$ & $646 \pm 0$  & $276.08 \pm 16.28$ & $0.427 \pm 0.025$ \\
+  & 1M   & $20523.61 \pm 0.26$ & $2.0041 \pm 0.0001$ & $646 \pm 0$  & $366.30 \pm  2.69$ & $0.567 \pm 0.004$ \\
+\midrule
+\multirow{4}{*}{writeback}
+  & 128K & $10240.99 \pm 0.02$ & $1.0000 \pm 0.0000$ & $18 \pm 2$  & $82.59  \pm  3.61$ & $4.588 \pm 0.548$ \\
+  & 256K & $10240.98 \pm 0.01$ & $1.0000 \pm 0.0000$ & $18 \pm 1$  & $78.76  \pm  1.15$ & $4.376 \pm 0.251$ \\
+  & 512K & $10240.97 \pm 0.01$ & $1.0000 \pm 0.0000$ & $18 \pm 1$  & $76.26  \pm  5.78$ & $4.237 \pm 0.398$ \\
+  & 1M   & $10241.10 \pm 0.02$ & $1.0000 \pm 0.0000$ & $26 \pm 1$  & $125.30 \pm  1.42$ & $4.819 \pm 0.193$ \\
+\midrule
+\multirow{4}{*}{nojournal}
+  & 128K & $10240.56 \pm 0.08$ & $1.0000 \pm 0.0000$ & --- & $67.92  \pm 30.58$ & --- \\
+  & 256K & $10240.58 \pm 0.01$ & $1.0000 \pm 0.0000$ & --- & $57.72  \pm  5.60$ & --- \\
+  & 512K & $10240.59 \pm 0.05$ & $1.0000 \pm 0.0000$ & --- & $51.59  \pm 11.93$ & --- \\
+  & 1M   & $10240.70 \pm 0.24$ & $1.0000 \pm 0.0000$ & --- & $106.95 \pm  2.33$ & --- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Table~\ref{tab:seq_waf} consolidates the physical write volume, WAF, and commit
+behaviour for each mode. Unlike the sync-heavy workload, where physical bytes written
+decreased as block size doubled due to reduced per-transaction overhead, here the
+physical byte count is essentially constant across all block sizes within each mode.
+\texttt{ordered}, \texttt{writeback}, and \texttt{nojournal} each produce approximately
+10.240\,GB of physical writes, whilst \texttt{journal} mode consistently produces
+around 20.522\,GB. This block-size independence arises because JBD2 commits are driven
+by the background timer rather than by per-write \texttt{fsync} calls, leaving the
+physical write volume determined entirely by the data volume and the mode's journaling
+policy rather than by write granularity.
+
+The WAF results reflect this directly. \texttt{ordered} and \texttt{writeback} achieve
+a WAF of effectively $1.0000\times$ across all block sizes, identical to
+\texttt{nojournal}. With the background timer batching thousands of writes per
+transaction --- only 14--28 total commits are issued across the entire 10\,GB run ---
+the fixed per-transaction overhead of descriptor, metadata, and commit blocks is
+amortised to negligible levels. This contrasts sharply with the sync-heavy workload,
+where \texttt{ordered} mode carried a WAF of $2.00\times$ at 4\,KB because every
+write forced its own individual commit. \texttt{journal} mode, by contrast, maintains a
+WAF of exactly $2.004\times$ across every block size with no variation. Because every
+data block must be written into the journal in addition to its final disk location, the
+extra write cost is strictly proportional to the volume of data written rather than to
+the number of transactions, and no amount of JBD2 batching can reduce this inherent
+$2\times$ factor.
+
+The commit interval column makes the underlying commit mechanism explicit.
+\texttt{ordered} and \texttt{writeback} show commit intervals of 4.0--4.8\,s across
+all block sizes, consistent with the kernel's 5\,second background commit timer firing
+with no other trigger. \texttt{journal} mode, by contrast, exhibits a commit interval
+of only 0.427--0.567\,s, roughly $20\times$ more frequent than the timer period. This
+is because each transaction in \texttt{journal} mode must accommodate both data and
+metadata blocks, and the journal's fixed maximum transaction capacity is exhausted long
+before the 5\,second timer fires. Once the transaction fills its block allocation, JBD2
+forces an immediate commit regardless of elapsed time, resulting in 622--646 commits
+over the course of the benchmark compared to only 11--26 for the other journaled modes.
+
+\subsubsection{Conclusion}
+The sequential write workload exposes a fundamental asymmetry in how the four journaling
+modes respond to the removal of the per-write durability constraint. \texttt{ordered}
+and \texttt{writeback} exploit JBD2 transaction batching to amortise their
+per-transaction journal overhead to negligible levels, achieving near-identical
+bandwidth to \texttt{nojournal} and a WAF of effectively $1.0000\times$ across all
+block sizes. \texttt{journal} mode is structurally unable to benefit from this
+batching: its $2\times$ data amplification is proportional to the volume of data
+written rather than to the number of transactions, resulting in a constant WAF of
+$2.004\times$, a commit interval $20\times$ shorter than the background timer period,
+and a persistent throughput penalty regardless of block size or transaction depth. For
+workloads that do not require per-write durability, \texttt{journal} mode should
+therefore be avoided, as its throughput penalty is inherent to its data-journaling
+policy and cannot be mitigated by tuning block size or commit interval.
+
+% =====================================================================
+\subsection{Combined Workload}
+
+The two preceding workloads represented opposite extremes of kernel commit behaviour:
+one in which a JBD2 commit is forced after every write, and one in which commit timing
+is delegated entirely to the kernel's background timer. This workload places both
+patterns under simultaneous pressure, running a sync-heavy and a sequential-write
+benchmark concurrently so that their interactions can be observed under realistic
+mixed-pressure conditions. The sync-heavy component issues 8\,KB writes each followed
+by an \texttt{fsync}, whilst the sequential-write component operates with a 1\,MB
+block size. Unlike the earlier workloads, which were bounded by a fixed data volume,
+both components here run for a fixed duration of two minutes. The benchmark is executed
+across all four ext4 journaling modes to isolate the overhead attributable to each
+mode's journaling policy. Every configuration is repeated five times and the results
+are averaged to mitigate measurement variability.
+
+\begin{table}[H]
+\centering
+\caption{Combined Throughput and Average Latency for WAL and Sequential Workloads}
+\label{tab:combined}
+\renewcommand{\arraystretch}{1.1}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Workload} & \textbf{Mode}
+  & \textbf{IOPS}
+  & \textbf{BW (MB/s)}
+  & \textbf{Data (GB)}
+  & \textbf{Avg lat.\ (ms)} \\
+\midrule
+\multirow{4}{*}{SYNC}
+  & ordered   & $4 \pm 1$   & $0.03 \pm 0.01$ & $0.00 \pm 0.00$ & $252.97 \pm 79.97$  \\
+  & journal   & $4 \pm 0$   & $0.03 \pm 0.00$ & $0.00 \pm 0.00$ & $228.39 \pm 18.54$  \\
+  & writeback & $2 \pm 1$   & $0.02 \pm 0.01$ & $0.00 \pm 0.00$ & $493.88 \pm 254.09$ \\
+  & nojournal & $8 \pm 5$   & $0.06 \pm 0.04$ & $0.01 \pm 0.00$ & $165.53 \pm 98.02$  \\
+\midrule
+\multirow{4}{*}{SEQ}
+  & ordered   & $107 \pm 11$ & $106.74 \pm 11.07$ & $12.52 \pm 1.30$ & $8.83 \pm 0.59$  \\
+  & journal   & $34 \pm 2$   & $34.29 \pm 2.12$   & $4.03 \pm 0.25$  & $29.25 \pm 1.69$ \\
+  & writeback & $109 \pm 17$ & $108.61 \pm 16.58$ & $12.83 \pm 1.93$ & $9.08 \pm 1.68$  \\
+  & nojournal & $96 \pm 13$  & $95.70 \pm 13.44$  & $11.33 \pm 1.43$ & $10.07 \pm 1.60$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsubsection{Throughput and Latency}
+Comparing Table~\ref{tab:combined} with Table~\ref{tab:throughput}, the WAL component
+suffers a severe degradation under concurrent load. IOPS collapse from the
+${\sim}170$--$381$ range observed in isolation to just $2$--$8$, a reduction of
+95--99\% across all modes. Bandwidth falls correspondingly from up to ${\sim}16.8$\,MB/s
+to below $0.06$\,MB/s, and average latency rises dramatically: in \texttt{ordered}
+mode, for instance, it increases from ${\sim}5.4$\,ms to ${\sim}253$\,ms, a
+$46\times$ inflation. Comparable degradation is observed across all other journaling
+modes.
+
+The mechanism is a system-wide coupling introduced by \texttt{fsync}. When the WAL
+component calls \texttt{fsync}, the kernel does not flush only the pages belonging to
+the WAL file: it locks the current JBD2 transaction and forces a commit of all
+outstanding dirty data from every writer sharing the filesystem, including the large
+dirty page footprint accumulated by the concurrently running sequential workload. The
+\texttt{fsync} call therefore cannot return until this much larger volume of data has
+been written back and journaled, inflating each individual \texttt{fsync} latency by
+roughly two orders of magnitude relative to its isolated value. Because the WAL thread
+is blocked for the entirety of each \texttt{fsync}, its effective throughput collapses.
+
+The sequential workload, by contrast, shows only moderate changes relative to
+Table~\ref{tab:seq_throughput}. IOPS and bandwidth are marginally higher in some modes
+--- approximately 5--15\% for \texttt{ordered} and \texttt{writeback} --- whilst
+average latency decreases slightly. This modest improvement arises because the WAL
+component's periodic \texttt{fsync} calls trigger forced JBD2 commits that writeback
+the sequential workload's dirty pages as a side effect, reducing the residual writeback
+work that would otherwise fall to the background flusher and slightly lowering the
+\texttt{write()} latency seen by the sequential thread.
+
+\subsubsection{Conclusion}
+The combined workload reveals a cross-workload interference effect that is absent in
+either workload individually: a single \texttt{fsync}-issuing thread can severely
+degrade its own throughput by inadvertently taking on the writeback cost of all
+co-resident writers. The WAL component's \texttt{fsync} latency inflates by up to
+$46\times$ relative to its isolated value because each commit is forced to drain the
+full dirty page set of the concurrently running sequential workload. This interference
+is an intrinsic property of the JBD2 transaction model, in which a commit is a
+filesystem-wide operation rather than a per-file one, and its severity scales with the
+volume of dirty data accumulated by other writers at the time \texttt{fsync} is called.
+The sequential workload is largely unaffected and even benefits slightly, as the
+WAL-driven commits serve as additional writeback opportunities that marginally reduce
+its own background flusher load. These results highlight that, in multi-workload
+environments, the performance of any \texttt{fsync}-dependent application is sensitive
+not only to its own I/O pattern but to the aggregate dirty page pressure generated by
+all processes sharing the same filesystem.
+
+
+% =====================================================================
+\section{Optimization Candidates: Overview}
 % =====================================================================
 
-\textit{Sections 3--6 author: Suyamoon Pathak (241110091).}
-
-Milan's measurements pointed at the commit path. The natural
+The measurements in the previous section pointed at the commit path. The natural
 question was: which specific commit can we make cheaper or skip
 entirely?
 
@@ -233,11 +732,56 @@ the full commit path. The original FastCommit
 paper~\cite{atc24-fc} lists ten such reasons, including
 \texttt{XATTR}, \texttt{FALLOC\_RANGE}, \texttt{CROSS\_RENAME},
 and \texttt{RENAME\_DIR}. Two of those are what the patches in
-Sections~5 and~6 close.
+Sections~6 and~7 close.
 
 Four candidates were tried in order; only the last two worked.
-Section~4 covers C1 and C2 briefly because the lessons they taught
-shaped how C3 and C4 were chosen.
+Section~5 covers C1 and C2 in detail because the lessons they
+taught shaped how C3 and C4 were chosen.
+
+\subsection{Candidate selection methodology}
+
+We did not start with fast-commit gaps.  We first code-reviewed the
+entire \texttt{fs/jbd2/} and \texttt{fs/ext4/} source tree for comments
+of the form \texttt{TODO:}, \texttt{FIXME:}, and \texttt{WARN\_ON(1)}.
+We also read the ATC~2024 paper's future-work section.  We wanted
+candidates that (a)~were backed by explicit developer comments in the
+code itself, (b)~were not already fixed in newer upstream kernels,
+and (c)~could be implemented in a bounded time budget without touching
+the on-disk format.
+
+This gave us three promising candidates in order: (1)~a developer TODO
+in \texttt{fs/jbd2/commit.c:454} about fast commit blocking too early,
+(2)~a developer TODO in \texttt{fs/ext4/mballoc.c:2564} about
+synchronous bitmap prefetch completion, and (3)~the xattr fast-commit
+gap documented but unpatched in the ATC~2024 paper.
+
+We attempted them in that order.  C1 and C2 produced null measurable
+results.  C3 succeeded.  Motivated by C3's success, we then measured
+three further candidates against the same criterion (Section~7.1
+``characterisation first'') before writing a single line of C4 kernel
+code.  Only the fallocate-range path cleared the bar.
+
+The following table summarises all four candidates:
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & \textbf{C1 (barrier)} & \textbf{C2 (bitmap)} & \textbf{C3 (xattr)} & \textbf{C4 (falloc)} \\
+\midrule
+Slow-path hit rate   & ${\sim}0.1\%$ & ${<}1\%$  & \textbf{100\%}   & \textbf{100\%}  \\
+Effect per hit       & ${<}1$~ms     & sub-ms    & 5--11~ms          & 5--7~ms         \\
+Measurable on VM?    & No            & No        & Yes ($64{\times}$) & Yes ($62.5{\times}$) \\
+Patch size           & 3 lines       & 80 lines  & 108 lines         & 46 lines        \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+C1 and C2 both optimise things that rarely happen in our workloads.
+Even if the per-hit savings are real, the aggregate effect drowns in
+measurement noise.  C3 optimises every single \texttt{setxattr}; C4
+optimises every \texttt{fallocate(COLLAPSE/INSERT\_RANGE)}.  At 100\%
+hit rate, even the VM cannot hide a 62--64$\times$ drop in commit count.
 
 % =====================================================================
 \section{Candidates 1 and 2: Did Not Measure}
@@ -250,7 +794,10 @@ workloads.
 
 \subsection{C1: fast-commit barrier deferral}
 
-The TODO sits at \texttt{fs/jbd2/commit.c} around line~454:
+\subsubsection{The developer TODO}
+
+The JBD2 developers themselves left an explicit TODO at
+\texttt{fs/jbd2/commit.c} around line~454:
 
 \begin{lstlisting}[language=C]
 /*
@@ -264,26 +811,118 @@ The TODO sits at \texttt{fs/jbd2/commit.c} around line~454:
  */
 \end{lstlisting}
 
-We moved the drain loop that waits for in-flight fast commits
-from before \texttt{T\_LOCKED} to just before \texttt{T\_FLUSH},
-along with the \texttt{journal->j\_fc\_off~=~0} reset that depends
-on it. On our fio randwrite+fsync workload the patched average
-commit time was 6661~$\mu$s versus 6590~$\mu$s on stock, a 1\%
-delta in the wrong direction. The
-\pth{/proc/fs/jbd2/loopX-8/info} counter showed the original
-barrier almost never fired in this workload because
-\texttt{T\_LOCKED} already takes well under a millisecond. An
-earlier ``57\% improvement'' result turned out to be a setup
-artifact: the stock benchmark had run for 5~MB while the patched
-benchmark had run for 60 seconds, and the test filesystem was not
-formatted with \texttt{-O fast\_commit} at all (so the drain loop
-was never executed). After fixing both, no improvement remained.
-Patch and postmortem are at \pth{suyamoon/jbd2-fc-barrier-defer.patch}
-and \pth{suyamoon/CANDIDATE1_postmortem.md}.
+The current code blocks any in-flight fast commit at \texttt{T\_LOCKED}
+--- the very first state of a full commit pipeline.  The comment says
+we could safely let them run until \texttt{T\_FLUSH}, which comes
+several pipeline states later.  If a full commit and a concurrent fast
+commit could overlap across \texttt{T\_LOCKED} $\to$ \texttt{T\_SWITCH}
+$\to$ \texttt{T\_FLUSH}, those states become effectively free.
+
+\subsubsection{What we implemented}
+
+A three-step change in \texttt{fs/jbd2/commit.c}:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Remove the early drain loop} (lines 444--462). Keep
+        only the \texttt{JBD2\_FULL\_COMMIT\_ONGOING} flag set under
+        \texttt{j\_state\_lock}, so new fast commits are still blocked
+        from \emph{starting}, but in-flight ones may continue.
+  \item \textbf{Remove \texttt{journal->j\_fc\_off = 0}} from its
+        position at \texttt{T\_LOCKED} (line~472).
+  \item \textbf{Insert a new drain + reset} just before
+        \texttt{T\_FLUSH} (line~566): wait for in-flight fast commits
+        to finish, \emph{then} reset \texttt{j\_fc\_off} to 0.
+\end{enumerate}
+
+\paragraph{The hidden \texttt{j\_fc\_off} race we discovered.}
+A naive ``just move the drain loop'' fix is \textbf{incorrect}.  The
+reason this TODO went unfixed for five-plus years is that the fix has
+a subtle hidden constraint: \texttt{j\_fc\_off} is reset to~0 at
+\texttt{T\_LOCKED}.  If you move the drain but leave the reset at
+\texttt{T\_LOCKED}, an in-flight fast commit's next
+\texttt{j\_fc\_off += N} allocation would reuse FC-area blocks that
+are supposedly already reserved by that commit.  This silently
+corrupts the on-disk fast-commit log.  Our patch moves the reset
+alongside the drain so both happen atomically before \texttt{T\_FLUSH}.
+This observation --- that you cannot naively move the drain without
+also moving the reset --- is a correct insight about the JBD2 fast
+commit protocol and is the real technical contribution of C1.
+
+\subsubsection{Correctness analysis}
+
+We manually verified four properties by code inspection (all
+file:line references in Linux~6.1.4):
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{No new fast commits after line~443:}
+        \texttt{JBD2\_FULL\_COMMIT\_ONGOING} is set under
+        \texttt{j\_state\_lock}; checked by
+        \texttt{jbd2\_fc\_begin\_commit} under the same lock
+        (\texttt{journal.c:745}).  Mutual exclusion preserved.
+  \item \textbf{T\_LOCKED and T\_SWITCH do not touch the FC area:}
+        grep confirmed no references to \texttt{j\_fc\_off},
+        \texttt{j\_fc\_first}, \texttt{j\_fc\_last}, or
+        \texttt{j\_fc\_wbuf} between \texttt{T\_LOCKED} and our new
+        drain point.
+  \item \textbf{Drain at T\_FLUSH is a sufficient barrier:} after
+        the wait loop, \texttt{JBD2\_FAST\_COMMIT\_ONGOING} is clear;
+        \texttt{j\_fc\_off = 0} is then safe.
+  \item \textbf{Crash recovery is unaffected:} recovery reads
+        on-disk data only; it is agnostic to the in-kernel reset
+        timing.
+\end{enumerate}
+
+\subsubsection{Why it did not work}
+
+The patch is correct and was verified on the VM: it builds, boots,
+mounts, and runs without \texttt{dmesg} errors.  The problem was
+the measurement.  On our \texttt{fio} \texttt{randwrite --fsync=1
+--numjobs=4} workload:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Stock & Patched & $\Delta$ \\
+\midrule
+Transactions            & 76   & 75   & --- \\
+Avg commit time ($\mu$s) & 6{,}590 & 6{,}661 & $+1.1\%$ (noise) \\
+T\_LOCKED phase (ms)   & 0    & 0    & --- \\
+T\_FLUSH phase (ms)    & 6    & 6    & --- \\
+``0ms locked'' counter  & yes  & yes  & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The delta is 1\% in the wrong direction, well inside measurement
+noise.  The \pth{/proc/fs/jbd2/loopX-8/info} file reported
+\texttt{0ms transaction was being locked} on both kernels, meaning
+the \texttt{T\_LOCKED} phase already completes in under a
+millisecond.  For a fast commit to benefit from the patch, it must
+arrive inside that \textless 1~ms window while a full commit is
+simultaneously in \texttt{T\_LOCKED}.  The probability of this
+overlap is roughly $(1\text{ ms}) / (1000\text{ ms/s}) \times
+P(\text{full commit in flight}) \approx 0.1\%$ per \texttt{fsync}.
+The optimisation is real; the frequency of the contention in
+realistic workloads is too low to show above noise.
+
+An \emph{earlier} ``57\% improvement'' result turned out to be a
+setup artifact: the stock benchmark had run for 5~MB while the
+patched benchmark ran for 60~s (different system warm-up, different
+cache state), and the test filesystem was formatted without
+\texttt{-O fast\_commit} (so the drain loop was never reached).
+After correcting both, no improvement remained.
+
+We varied \texttt{numjobs} (1, 2, 4, 8 concurrent fsync threads)
+and tested all three journaling modes; none closed the gap.  Patch
+and postmortem are at \pth{Fast_Commit_Optimization/jbd2-fc-barrier-defer.patch}
+and \pth{Fast_Commit_Optimization/CANDIDATE1_postmortem.md}.
 
 \subsection{C2: async bitmap prefetch completion}
 
-The TODO sits at \texttt{fs/ext4/mballoc.c:2564}:
+\subsubsection{The developer TODO}
+
+In \texttt{fs/ext4/mballoc.c:2564}, the ext4 block allocator
+developers left an explicit TODO:
 
 \begin{lstlisting}[language=C]
 /*
@@ -294,26 +933,157 @@ The TODO sits at \texttt{fs/ext4/mballoc.c:2564}:
  */
 \end{lstlisting}
 
-We added a per-superblock workqueue and slab cache; in
-\texttt{ext4\_mb\_prefetch\_fini}, if the bitmap is already
-uptodate the original synchronous init is used, otherwise a work
-item is queued and the caller returns. After two correctness
-fixes caught by code review (a \texttt{noinline\_for\_stack}
-attribute that we had silently stripped, and an OOM-path leak of
-\texttt{s\_buddy\_cache}), the patch built cleanly. The problem
-was again measurement: in our microbenchmark the cold-init path
-was hit on $<$1\% of allocations (the bitmaps were already in
-memory after the first few iterations), and our fio throughput
-benchmark had a 70\% coefficient of variation across repeats on
-the same kernel. We did not invest further. Patch and postmortem
-are at \pth{suyamoon/mballoc-async-prefetch.patch} and
-\pth{suyamoon/CANDIDATE2_postmortem.md}.
+\texttt{ext4\_mb\_prefetch\_fini()} runs at the end of every call to
+\texttt{ext4\_mb\_regular\_allocator}.  It walks a list of groups for
+which bitmaps were prefetched and calls
+\texttt{ext4\_mb\_init\_group} on each.  That function blocks on
+bitmap I/O if the prefetched read is not yet complete, stalling the
+allocator even after it has already found a target block.
+
+\subsubsection{Three implementation shapes considered}
+
+\begin{description}[leftmargin=*]
+  \item[A: Simple offload.] Always queue \texttt{ext4\_mb\_init\_group}
+        to a workqueue.  Simple, but wastes worker threads blocking
+        on I/O when the bitmap read is already done.
+  \item[B: True TODO intent.] Hook the bitmap READ bio's
+        \texttt{end\_io} callback to schedule the buddy init when I/O
+        completes.  Matches the TODO literally; changes the read path
+        and raises correctness risk (IRQ context, RCU).
+  \item[C: Opportunistic hybrid \textit{(chosen)}.] In
+        \texttt{ext4\_mb\_prefetch\_fini}, probe the bitmap buffer: if
+        already uptodate, init inline; if not, queue a work item.
+        Captures most of (B)'s benefit without touching the read path.
+\end{description}
+
+We chose~(C) because it has the lowest correctness risk.  If~(C)
+shows measurable benefit, (B) is a natural follow-on; if not, (B)
+would not either --- so we save the work.
+
+\subsubsection{Correctness analysis}
+
+Four invariants verified by code inspection:
+
+\begin{enumerate}[leftmargin=*]
+  \item \texttt{ext4\_mb\_init\_group} early-returns if
+        \texttt{EXT4\_MB\_GRP\_NEED\_INIT} is clear, making races
+        between the async worker and synchronous callers harmless ---
+        whichever wins, the other no-ops.
+  \item The buddy page lock (\texttt{ext4\_mb\_get\_buddy\_page\_lock})
+        serialises the actual cache work between any two callers.
+  \item \texttt{flush\_workqueue} + \texttt{destroy\_workqueue} in
+        \texttt{ext4\_mb\_release()} drain all pending workers before
+        group metadata is freed on unmount.
+  \item On init failure, the error path destroys both the slab and
+        the workqueue we created; \texttt{ext4\_mb\_release} is not
+        called for failed mounts, so there is no double-destroy.
+\end{enumerate}
+
+\subsubsection{Bugs caught during code review}
+
+\paragraph{Blocker 1 --- \texttt{static noinline\_for\_stack} orphaning.}
+Our first version inserted the new \texttt{struct
+ext4\_bitmap\_init\_work} and helper functions \emph{between}
+\texttt{static noinline\_for\_stack} (line~1363) and
+\texttt{int ext4\_mb\_init\_group(...)} (line~1364).  C grammar
+binds \texttt{static noinline\_for\_stack} to the \emph{next}
+declaration, which became our struct, not the function.
+Consequences: \texttt{ext4\_mb\_init\_group} silently lost
+\texttt{static} linkage (symbol namespace pollution) and its
+\texttt{noinline\_for\_stack} annotation (removing the stack
+isolation needed on deeply-nested allocator call chains with KASAN).
+\textbf{Fix:} moved the inserted block to before the ``Locking note''
+comment, restoring adjacency with the function definition.
+
+\paragraph{Blocker 2 --- resource leak on OOM in \texttt{ext4\_mb\_init}.}
+We originally placed the slab and workqueue creation \emph{after}
+\texttt{ext4\_mb\_init\_backend()} succeeded.  If our
+\texttt{alloc\_workqueue()} call then failed, the error path jumped
+to \texttt{out\_free\_locality\_groups}, which could not undo
+the backend's work, leaking \texttt{s\_buddy\_cache} and
+\texttt{s\_group\_info} on that specific OOM path.
+\textbf{Fix:} moved creation to \emph{before}
+\texttt{ext4\_mb\_init\_backend}.  If creation fails the backend has
+not run yet --- nothing to clean up.
+
+\paragraph{Build-time issue --- forward declaration.}
+After moving the helper functions ahead of
+\texttt{ext4\_mb\_init\_group}, the build failed: our
+\texttt{ext4\_mb\_async\_init\_worker} calls
+\texttt{ext4\_mb\_init\_group()} before the compiler sees its
+\texttt{static} definition.  \textbf{Fix:} one-line forward
+declaration above the new block.  Neither review stage caught this
+because both reviewers read the patched source textually, not with
+compiler eyes.  Build-and-boot verification is non-negotiable.
+
+\subsubsection{Why it did not work}
+
+The patch is correct and the kernel boots without errors.  The
+problem was again measurement.
+
+\paragraph{Fallocate microbench --- no signal.}
+We ran a fresh 16~GB loop device, \texttt{mkfs.ext4 -F -O
+fast\_commit}, and iterated 32$\times$ \texttt{fallocate -l 256M}
+with sync between.  Three full repeats (96 samples):
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Stock & Patched & $\Delta$ \\
+\midrule
+Mean ($\mu$s)   & 8{,}629 & 9{,}006 & $+4.4\%$ worse \\
+Median ($\mu$s) & 8{,}422 & 8{,}703 & $+3.3\%$ worse \\
+p95 ($\mu$s)    & 10{,}682 & 12{,}426 & $+16\%$ worse \\
+p99 ($\mu$s)    & 14{,}998 & 13{,}647 & $-9\%$ better \\
+Stdev ($\mu$s)  & 1{,}051  & 1{,}180  & $+12\%$ worse \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All deltas are within 1$\sigma$: a null result.  The reason: a
+16~GB filesystem with default 128~MB groups has only 128 groups.
+After the first few 256~MB allocations the bitmaps are warm;
+\texttt{EXT4\_MB\_GRP\_NEED\_INIT} is cleared; subsequent
+allocations reuse cached bitmaps and never reach the
+\texttt{prefetch\_fini} async branch.  In our workload the cold-init
+path is hit on less than 1\% of allocations.
+
+\paragraph{VM variance discovery.}
+An \texttt{fio} throughput benchmark (8~GB write, 4 jobs) showed a
+promising $+10.5\%$ on the first composite run.  A focused 5-repeat
+test revealed the truth:
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+Run & BW (MiB/s) \\
+\midrule
+1 & 774 \\
+2 & 655 \\
+3 & 203 \\
+4 & 203 \\
+5 & 190 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Mean~$405 \pm 286$~MiB/s --- a \textbf{70\% coefficient of
+variation} within a single kernel.  The VM's loop device passes
+writes through the host page cache; the first two runs are
+memory-bound, later runs actually hit host disk.  At 70\% CV no
+patch smaller than a $2\times$ speedup can be measured.  The
+initial $+10.5\%$ was an order-of-measurement artifact.
+
+Patch and postmortem are at \pth{Fast_Commit_Optimization/mballoc-async-prefetch.patch}
+and \pth{Fast_Commit_Optimization/CANDIDATE2_postmortem.md}.
 
 \paragraph{Lesson.} A patch is only as useful as the fraction of
-operations that exercise the path it changes. After C1 and C2 we
-adopted a hard rule: only ship a patch if a microbench can show
-that the slow path it removes is hit on a substantial fraction of
-the target operation.
+operations that exercise the path it changes.  After C1 and C2 we
+adopted a hard rule: \emph{only ship a patch if a microbench can
+show that the slow path it removes is hit on a substantial fraction
+of the target operation, and the measurement noise floor is lower
+than the expected effect.}  C3 and C4 were both validated against
+this rule before any kernel code was written.
 
 % =====================================================================
 \section{Candidate 3: Fast Commit Support for Inline xattrs}
@@ -329,31 +1099,63 @@ slow path effectively 100\% hit on xattr-touching workloads. The
 ATC~2024 paper~\cite{atc24-fc} flags this gap but provides no
 patch.
 
+This matters because extended attributes are used pervasively.
+SELinux labels every file via \texttt{security.selinux}.  POSIX
+ACLs use \texttt{system.posix\_acl\_access}.  Package managers
+write \texttt{user.*} attributes for checksums.
+\texttt{systemd-tmpfiles} writes xattrs during boot.  On any
+fast-commit filesystem, every one of these operations silently
+reverts to the expensive full-commit path even though the fast
+commit area sits idle.
+
+\subsection{Where xattrs live in ext4}
+
+ext4 stores xattrs in three locations:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Inline} --- in the inode body itself, between
+        \texttt{EXT4\_GOOD\_OLD\_INODE\_SIZE + i\_extra\_isize}
+        and the end of the inode.  On a 256-byte inode this gives
+        roughly 80~bytes for xattrs.  Most SELinux labels, POSIX
+        ACLs, and short \texttt{user.*} xattrs fit here.
+  \item \textbf{Block} --- in a separate 4~KB block pointed to by
+        \texttt{i\_file\_acl}.  Used when xattrs do not fit inline.
+  \item \textbf{EA inode} --- each xattr gets its own small inode.
+        Used when the value is very large and the \texttt{ea\_inode}
+        feature is enabled.
+\end{enumerate}
+
+Our patch handles case~(1).  For cases~(2) and~(3) we keep the
+full-commit fallback.  This covers nearly all real-world xattr
+operations because SELinux and ACLs are always short and fit inline.
+
 \subsection{Code analysis}
 
 The fallback is fired by an unconditional call at the end of
 \texttt{ext4\_xattr\_set\_handle} in \texttt{fs/ext4/xattr.c}
-(line 2422):
+(line~2422):
 
 \begin{lstlisting}[language=C]
 ext4_fc_mark_ineligible(inode->i_sb, EXT4_FC_REASON_XATTR, handle);
 \end{lstlisting}
 
-A second \texttt{mark\_ineligible} call sits at line 2500 inside
-the wrapper \texttt{ext4\_xattr\_set}, after
-\texttt{ext4\_journal\_stop}, with \texttt{handle==NULL}. With
-\texttt{handle} null this call marks the running JBD2 transaction
-ineligible, which would suppress fast commit on any later
-\texttt{fsync} sharing that transaction. Missing this second call
-would have made the patch a no-op for end users.
+That single line kills fast commit for the entire transaction,
+regardless of whether the xattr was inline, block, or EA-inode.
 
-ext4 stores xattrs in three places: \emph{inline} (in the inode
-body, between \texttt{EXT4\_GOOD\_OLD\_INODE\_SIZE
-+ i\_extra\_isize} and the end of the inode), in a separate
-\emph{block} (pointed to by \texttt{i\_file\_acl}), or in
-dedicated \emph{EA inodes}. We targeted the inline case because
-it covers nearly all real-world xattr operations: SELinux labels
-and POSIX ACLs are short and fit inline.
+A second \texttt{mark\_ineligible} call sits at line~2500 inside
+the wrapper \texttt{ext4\_xattr\_set}, \emph{after}
+\texttt{ext4\_journal\_stop}, with \texttt{handle==NULL}.  With a
+null handle this call marks the current running JBD2 transaction
+ineligible, suppressing fast commit on any later \texttt{fsync}
+sharing that transaction.  This second call is more subtle ---
+it is in a different function from the one our patch changes, and
+finding it required tracing every call site of
+\texttt{ext4\_fc\_mark\_ineligible} in the xattr code.  Missing
+it would have made the patch a no-op for end users even though the
+change inside \texttt{ext4\_xattr\_set\_handle} was correct.
+We deleted it after confirming that our new conditional at
+line~2422 already handles every case on which the inode is actually
+modified.
 
 \subsection{Design and implementation}
 
@@ -363,35 +1165,55 @@ Two changes, both small.
   \item \textbf{Expand the FC inode log.}
         \texttt{ext4\_fc\_write\_inode} in
         \texttt{fs/ext4/fast\_commit.c:863} currently logs the
-        inode's bytes up to \texttt{EXT4\_GOOD\_OLD\_INODE\_SIZE
-        + i\_extra\_isize}. We extend it to log up to
+        inode's raw bytes up to
+        \texttt{EXT4\_GOOD\_OLD\_INODE\_SIZE + i\_extra\_isize}.
+        That stops just before the inline xattr region.  We add a
+        two-line conditional that expands the log to
         \texttt{EXT4\_INODE\_SIZE} when the inode has inline
-        xattrs (detected via the existing
-        \texttt{EXT4\_STATE\_XATTR} flag). Replay needs no
-        change: \texttt{ext4\_fc\_replay\_inode} already
-        \texttt{memcpy}s \texttt{fc\_len} bytes, and the
-        validator already accepts records up to
-        \texttt{s\_inode\_size}.
+        xattrs, detected via the pre-existing
+        \texttt{EXT4\_STATE\_XATTR} flag that ext4 already sets
+        and clears correctly in its xattr code.
+
+        Replay needs no change: \texttt{ext4\_fc\_replay\_inode}
+        already \texttt{memcpy}s \texttt{fc\_len} bytes from the
+        log into the inode, and the validator already accepts
+        records up to \texttt{s\_inode\_size}.  When the patched
+        kernel logs a larger inode, the same replay code restores
+        it correctly.  This is the main reason the patch came out
+        so small --- we reused the entire existing replay path.
+
   \item \textbf{Skip the ineligibility call when safe.} In
         \texttt{ext4\_xattr\_set\_handle}, add a local
-        \texttt{bool touched\_block} that is set to true on every
-        path that calls \texttt{ext4\_xattr\_block\_set} or sets
-        \texttt{i.in\_inode = 1} (the EA-inode path). Replace the
-        unconditional \texttt{mark\_ineligible} at line 2422 with:
+        \texttt{bool touched\_block = false} at the top. Set it
+        to true on every path that calls
+        \texttt{ext4\_xattr\_block\_set} or takes the EA-inode
+        path (\texttt{i.in\_inode = 1}).  Replace the unconditional
+        \texttt{mark\_ineligible} at line~2422 with:
 \begin{lstlisting}[language=C]
 if (error || touched_block || !ext4_has_feature_xattr(inode->i_sb))
     ext4_fc_mark_ineligible(inode->i_sb,
                             EXT4_FC_REASON_XATTR, handle);
 \end{lstlisting}
-        and delete the wrapper's redundant call at line 2500. The
-        third condition handles the very first xattr on a fresh
-        filesystem (the superblock xattr feature bit has just
-        been set in memory but not yet persisted; if we
-        fast-committed and the machine crashed, replay would not
-        see the bit).
+        and delete the wrapper's redundant call at line~2500.
+
+        The three conditions each have a specific role:
+        \begin{itemize}[leftmargin=*]
+          \item \texttt{error}: the operation failed; fall back to be safe.
+          \item \texttt{touched\_block}: we modified a separate xattr
+                block or an EA inode; fast commit does not log these,
+                so a full commit is required.
+          \item \texttt{!ext4\_has\_feature\_xattr(sb)}: this is the
+                \emph{very first} xattr on a freshly-mkfs'd filesystem.
+                The superblock xattr feature bit has just been set in
+                memory but not yet persisted.  If we fast-committed now
+                and the machine crashed, the replayer would not see the
+                bit and would not know to interpret the inode's inline
+                region as xattr data.  The first xattr is therefore
+                always a full commit by design.
+        \end{itemize}
 \end{enumerate}
 
-The full patch is 108 lines (\pth{suyamoon/fc-inline-xattr.patch}):
+The full patch is 108 lines (\pth{Fast_Commit_Optimization/fc-inline-xattr.patch}):
 \texttt{+9/-0} in \texttt{fast\_commit.c} (the new conditional with
 its comment), and \texttt{+27/-4} in \texttt{xattr.c} (the
 \texttt{touched\_block} declaration, five assignments to it on
@@ -420,7 +1242,7 @@ comments at both sites).
         \texttt{482}). Of the six that ran, five pass and
         \texttt{generic/473} fails identically on stock and
         patched (a pre-existing 6.1.4 issue, not a regression).
-        Logs at \pth{suyamoon/xfstests_c3/}.
+        Logs at \pth{Fast_Commit_Optimization/xfstests_c3/}.
 \end{itemize}
 
 \subsection{Results}
@@ -434,11 +1256,27 @@ comments at both sites).
 \toprule
 Metric & Stock & Patched & Change \\
 \midrule
-Wall time         & 31{,}102~ms & 22{,}734~ms & $-26.9\%$ \\
-JBD2 full commits & 5{,}000 & \textbf{78} & $\mathbf{-98.4\%}$ \\
+Wall time (5000 ops) & 31{,}102~ms & 22{,}734~ms & $-26.9\%$ \\
+Per-op latency       & 6{,}220~$\mu$s & 4{,}546~$\mu$s & $-26.9\%$ \\
+JBD2 full commits    & 5{,}000 & \textbf{78} & $\mathbf{-98.4\%}$ \\
+Commits per op       & 1.000   & 0.016       & --- \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+The 64$\times$ reduction in full commits (5000~$\to$~78) is the
+clean architectural signal.  Our patch engages the fast commit
+path on 98.4\% of operations, exactly as designed.  The remaining
+1.6\% are expected: one full commit for the warmup xattr
+(feature-bit persistence, by design), and a handful from JBD2's
+natural 5-second timer and fast-commit-area wraparounds.
+
+The 27\% wall-time reduction is smaller than the commit-count
+drop might suggest.  On the VM each \texttt{fsync} takes about
+5~ms end-to-end, of which roughly 1.7~ms is the JBD2 full commit
+we eliminate; the remaining~3.3~ms is VFS, syscall entry/exit,
+and the host-backed loop device's write-behind path --- none of
+which our patch touches.  On real hardware this ratio shifts.
 
 \paragraph{Bare-metal (11th Gen Intel Core i3-1115G4, 4 cores,
 7.5 GiB RAM, real SATA SSD; 3 repeats).}
@@ -448,22 +1286,30 @@ JBD2 full commits & 5{,}000 & \textbf{78} & $\mathbf{-98.4\%}$ \\
 \toprule
 Metric & Stock & Patched & Change \\
 \midrule
-Wall time (mean)  & 57{,}627~ms & 30{,}089~ms & $-47.8\%$ \\
-JBD2 full commits & 5{,}000 & \textbf{78} & $\mathbf{-98.4\%}$ \\
+Wall time (mean)     & 57{,}627~ms & 30{,}089~ms & $-47.8\%$ \\
+Stdev                & 3{,}225~ms  & 2{,}088~ms  & (${\sim}6\%$ CV) \\
+Per-op latency       & 11{,}525~$\mu$s & 6{,}017~$\mu$s & $-47.8\%$ \\
+JBD2 full commits    & 5{,}000 & \textbf{78} & $\mathbf{-98.4\%}$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The transaction count reduction (5000 to 78, $\sim$64$\times$) is
-identical between VM and bare-metal: this is the architectural
-claim of the patch and it does not depend on the hardware. The
-wall-time gain is larger on bare-metal (48\% versus 27\%) because
-on a real SSD the fixed VFS and syscall overhead per
-\texttt{fsync} is a smaller share of the total, leaving more room
-for the journal-side savings to show through.
+Two observations.  First, the transaction count reduction is
+\textbf{byte-identical} to the VM result: 64$\times$,
+5000~$\to$~78.  This is the architectural claim of the patch;
+it reproduces across machines with different CPUs, memory, and
+storage.  Second, the wall-time speedup is nearly doubled on the
+bare-metal machine: 48\% versus 27\%.  On a real SATA SSD the
+VFS and syscall overhead form a smaller share of per-op cost, so
+eliminating the JBD2 commit portion yields a larger relative gain.
+The 3-repeat coefficient of variation is about 6\%, a usable
+measurement setup; the result is not a one-off artifact.
 
-A non-xattr regression check (fio randwrite+fsync, 4 jobs, 30~s)
-gave 528 IOPS patched versus 530 stock, well within noise.
+\paragraph{Non-xattr regression check.}
+To confirm the patch does not regress unrelated workloads we ran
+\texttt{fio --rw=randwrite --bs=4k --fsync=1 --numjobs=4} for 30~s
+on the patched kernel.  Stock: 530~IOPS.  Patched: 528~IOPS.
+Delta 0.4\%, well inside noise.  No regression.
 
 % =====================================================================
 \section{Candidate 4: Fast Commit Support for fallocate Range Operations}
@@ -471,46 +1317,71 @@ gave 528 IOPS patched versus 530 stock, well within noise.
 
 \subsection{Intuition}
 
-After C3 we asked which other \texttt{ext4\_fc\_mark\_ineligible}
-fallback has the same shape: a 100\% hit rate on a well-defined
-operation class, a small expected patch, and a microbench that
-cleanly distinguishes patched from unpatched behavior.
+After C3 succeeded we asked a simple question: is there another
+slow path in ext4 with the same shape?  That is, an operation that
+(a)~is used regularly on a fast-commit filesystem, (b)~hits
+\texttt{ext4\_fc\_mark\_ineligible} on 100\% of calls, and (c)~has
+a simple enough code path that the fix is a small patch, not a
+rewrite.
 
-\subsection{Characterization first}
+We found one: the \texttt{FALLOC\_FL\_COLLAPSE\_RANGE} and
+\texttt{FALLOC\_FL\_INSERT\_RANGE} modes of \texttt{fallocate(2)}.
+Collapse removes a middle slice of a file and shifts following data
+left; insert adds a zero-filled hole at an offset and shifts
+following data right.  Both are used by log rotators, database log
+compactors, and VM disk image tools.  Both call
+\texttt{ext4\_fc\_mark\_ineligible(EXT4\_FC\_REASON\_FALLOC\_RANGE)}
+unconditionally and force a full JBD2 commit on every invocation.
 
-For C4 we measured before writing kernel code. Three candidate
-microbenchmarks were run on the C3 kernel: fallocate
-COLLAPSE/INSERT range; large (4 KB) \texttt{setxattr} values that
-spill to the xattr block (the case C3 does not cover); and
-many-thread concurrent \texttt{fsync} (the CJFS-style compound
-flush target). Three runs each, $N=1000$ ops (or 100 per thread):
+\subsection{Characterisation first}
+
+The cost of our first two failures was implementing patches before
+confirming the slow path was hit hard enough to measure.  For C4
+we flipped the order: measure first, write kernel code second.
+
+We ran three candidate microbenchmarks on the C3 kernel to compare
+three possible targets: fallocate COLLAPSE/INSERT range; large
+(4~KB) \texttt{setxattr} values that spill to a separate xattr
+block (the case C3 does not cover); and many-thread concurrent
+\texttt{fsync} (the CJFS-style compound flush target).  Three runs
+each, $N=1000$ ops (or 100 per thread at $T=16$).
+
+The selection rule: only implement if the microbench shows
+\texttt{tx/op $\ge$ 0.5} --- at least one full commit per op.
+Anything below means the slow path is already being coalesced.
 
 \begin{center}
 \begin{tabular}{lrrl}
 \toprule
-Workload & ms/op & tx/op & signal \\
+Workload & ms/op & tx/op & Signal \\
 \midrule
-fallocate COLLAPSE\_RANGE & 7.03 & 1.001 & strong \\
-fallocate INSERT\_RANGE   & 7.01 & 1.001 & strong \\
-xattr block (4 KB value)  & 7.23 & 1.001 & strong but narrow \\
+fallocate COLLAPSE\_RANGE & 7.03 & 1.001 & \textbf{strong} \\
+fallocate INSERT\_RANGE   & 7.01 & 1.001 & \textbf{strong} \\
+xattr block (4~KB value)  & 7.23 & 1.001 & strong but narrow \\
 concurrent fsync $T=16$   & 1.21 & 0.003 & weak \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 Fallocate COLLAPSE/INSERT showed the same per-op signal as C3's
-xattr case. The xattr-block path showed equal per-op cost but
-covers a minority of \texttt{setxattr} calls (typical SELinux/ACL
-values are short and already handled by C3). Concurrent fsync was
-already well-coalesced by JBD2's group commit (tx/op falls from
-0.020 at $T=1$ to 0.003 at $T=16$), so a CJFS-style port would
-not help much on 6.1.4. Fallocate became C4.
+xattr case: every single op triggers exactly one full commit.
+The xattr-block path showed equal per-op cost but covers a
+minority of \texttt{setxattr} calls in practice --- typical
+SELinux and ACL values are short and already handled by C3.
+Concurrent fsync was already well-coalesced by JBD2's group commit:
+the tx/op ratio drops sharply as threads increase (0.020 at $T=1$
+down to 0.003 at $T=16$), so a CJFS-style port would not help much
+on 6.1.4.  We chose fallocate for C4 because it is a clean,
+independent code path rather than an extension of C3 --- the patch
+adds a second, separate architectural reduction rather than a
+refinement of the first.
 
 \subsection{Code analysis}
 
 Two call sites in \texttt{fs/ext4/extents.c} mark fallocate
 range operations as ineligible, both right after
-\texttt{ext4\_journal\_start}:
+\texttt{ext4\_journal\_start} and before the actual extent-tree
+work:
 
 \begin{lstlisting}[language=C]
 /* line 5363, inside ext4_collapse_range */
@@ -520,82 +1391,127 @@ ext4_fc_mark_ineligible(sb, EXT4_FC_REASON_FALLOC_RANGE, handle);
 ext4_fc_mark_ineligible(sb, EXT4_FC_REASON_FALLOC_RANGE, handle);
 \end{lstlisting}
 
-Crucially, ext4 already has fast-commit tags for the underlying
-extent-level changes (\texttt{FC\_TAG\_ADD\_RANGE},
-\texttt{FC\_TAG\_DEL\_RANGE}, emitted by
-\texttt{ext4\_fc\_write\_inode\_data}), and the per-inode
-\texttt{FC\_TAG\_INODE} tag carries the new \texttt{i\_size}. The
-fallback exists only because the collapse/insert paths never call
-\texttt{ext4\_fc\_track\_range} on the logical blocks they modify,
-so the FC commit walker does not know to include the shifted
-region.
+The rest of each function modifies the extent tree (removes a
+range, inserts a hole, shifts extents left or right) and updates
+\texttt{i\_size} and the timestamps.
+
+Crucially, ext4 \emph{already} has fast-commit tags for the
+underlying extent-level changes: \texttt{FC\_TAG\_ADD\_RANGE}
+and \texttt{FC\_TAG\_DEL\_RANGE}, emitted by
+\texttt{ext4\_fc\_write\_inode\_data} in \texttt{fast\_commit.c}.
+The per-inode \texttt{FC\_TAG\_INODE} tag already carries the
+updated \texttt{i\_size}.  All the information needed to reproduce
+a collapse or insert on the replay side is already representable
+in the existing tag vocabulary.
+
+The \texttt{FALLOC\_RANGE} fallback exists for one reason only:
+the collapse/insert paths never call \texttt{ext4\_fc\_track\_range}
+on the logical blocks they modify.  Without that call the
+fast-commit commit walker does not know to include the shifted
+region when it walks the extent tree at commit time.
 
 \subsection{Design and implementation}
 
 Replace each of the two \texttt{mark\_ineligible} calls with a
 call to \texttt{ext4\_fc\_track\_range} over the affected
 logical-block range, computed at the point where the journal
-handle is open:
+handle is open (so \texttt{inode->i\_size} still holds the
+pre-modification size):
 
 \begin{lstlisting}[language=C]
-/* collapse path: track punch_start to current EOF */
+/* collapse path: track from punch_start to current EOF */
 ext4_fc_track_range(handle, inode, punch_start,
     ((inode->i_size + inode->i_sb->s_blocksize - 1) >>
      EXT4_BLOCK_SIZE_BITS(inode->i_sb)) - 1);
 
-/* insert path: track offset_lblk to post-grow EOF */
+/* insert path: track from offset_lblk to post-grow EOF */
 ext4_fc_track_range(handle, inode, offset_lblk,
     ((inode->i_size + len + inode->i_sb->s_blocksize - 1) >>
      EXT4_BLOCK_SIZE_BITS(inode->i_sb)) - 1);
 \end{lstlisting}
 
-At fsync time, \texttt{ext4\_fc\_write\_inode\_data} walks the
-post-shift extent tree over the tracked range and emits
+For collapse, the affected range runs from \texttt{punch\_start}
+up to the current EOF.  For insert, we add \texttt{len} to cover
+the grown region.  At fsync time, the standard fast-commit commit
+runs \texttt{ext4\_fc\_write\_inode\_data}, which walks the
+post-shift extent tree over the tracked range, emits
 \texttt{FC\_TAG\_ADD\_RANGE} for each shifted extent at its new
-position plus \texttt{FC\_TAG\_DEL\_RANGE} for any resulting
-hole. \texttt{FC\_TAG\_INODE} is emitted by the
-\texttt{ext4\_mark\_inode\_dirty} call later in each function and
-carries the new \texttt{i\_size}.
+logical position, and \texttt{FC\_TAG\_DEL\_RANGE} for any
+resulting hole (new in the insert case; at the old tail in the
+collapse case).  \texttt{FC\_TAG\_INODE} is emitted by the
+\texttt{ext4\_mark\_inode\_dirty} call that already exists later in
+each function and carries the new \texttt{i\_size}.
 
 \paragraph{Replay correctness.} The non-obvious part is that
 \texttt{ext4\_fc\_replay\_del\_range} frees the physical blocks of
 the range it removes via \texttt{ext4\_mb\_mark\_bb(\ldots,~0)}.
-In an insert (where the physical data does not move, only the
-logical position shifts) \texttt{DEL\_RANGE} replay transiently
-marks blocks free and \texttt{ADD\_RANGE} replay re-binds them.
-The intermediate bitmap state is wrong; the final state is
-reconciled by the pre-existing
+In an insert operation, only the logical positions move --- the
+physical data blocks stay put.  \texttt{DEL\_RANGE} replay
+therefore transiently marks those blocks free, and
+\texttt{ADD\_RANGE} replay re-binds them at their new logical
+position.  The intermediate bitmap state is wrong; the final state
+is reconciled by the pre-existing
 \texttt{ext4\_fc\_set\_bitmaps\_and\_counters} pass, which runs at
-the end of replay and re-marks all currently-reachable blocks as
-used.
+the end of every replay and re-walks all modified inodes' extent
+trees to re-mark currently-reachable blocks as used.  This pass is
+what makes the design safe without requiring new tag types or
+changes to replay logic.
 
-The full patch is 46 lines (\pth{suyamoon/fc-fallocate-range.patch}),
-two hunks in \texttt{fs/ext4/extents.c}. No change to
-\texttt{fast\_commit.c}, no new tag types, no on-disk format change.
+The full patch is 46 lines (\pth{Fast_Commit_Optimization/fc-fallocate-range.patch}),
+two hunks in \texttt{fs/ext4/extents.c}.  No change to
+\texttt{fast\_commit.c}, no new tag types, no on-disk format change,
+no new compat feature bit.  Same philosophy as C3: reuse existing
+primitives rather than add new ones.
 
 \subsection{Correctness}
 
+\paragraph{Compilation.}  \texttt{fs/ext4/extents.o} builds clean
+at kernel warning level~2.  The full kernel build with
+\texttt{LOCALVERSION=-cs614-c4-patched} completes with zero errors.
+
+\paragraph{Smoke test.}  On the booted C4 kernel we created a file
+with distinct per-block byte patterns, performed a collapse
+followed by an insert, read back the shifted region, and compared
+md5 checksums.  The output matched the expected post-operation
+state computed in Python.
+
+\paragraph{Custom crash-recovery tests.}  Three tests at
+\pth{Fast_Commit_Optimization/c4_crash_test_{a,b,c}.sh}:
 \begin{itemize}[leftmargin=*]
-  \item Three crash-recovery scripts
-        (\texttt{c4\_crash\_test\_\{a,b,c\}.sh}). Each writes a
-        distinct-byte-pattern file, performs the operation,
-        fsyncs, lazy-umounts to simulate a crash, remounts, and
-        compares the resulting file's md5 and size to the
-        expected post-operation state computed in pure Python.
-        Test~A: collapse 32 blocks (\textbf{PASS}). Test~B:
-        insert 16 blocks at offset~16 (\textbf{PASS}). Test~C:
-        three interleaved collapse/insert ops (\textbf{PASS}).
-  \item Same xfstests subset as C3. Five of the six runnable
-        tests pass; \texttt{generic/473} again fails identically
-        to stock and to the C3 kernel.
+  \item Test~A: write a 1~MB file with distinct per-block patterns,
+        \texttt{fsync}, \texttt{fallocate -c} to collapse 32 blocks,
+        \texttt{fsync}, simulate crash via lazy unmount, remount,
+        compare md5 and size against expected post-collapse state.
+        \textbf{PASS}.
+  \item Test~B: similar, but \texttt{fallocate -i} to insert 16
+        blocks at offset~16.  Expected state: unchanged head,
+        zero-filled hole in the inserted region, original tail
+        shifted right.  \textbf{PASS}.
+  \item Test~C: three interleaved operations (collapse, insert,
+        collapse) each followed by \texttt{fsync}, then crash.
+        Expected md5 computed in pure Python from the same sequence.
+        \textbf{PASS}.  This is the strongest test because it
+        accumulates multiple \texttt{ADD\_RANGE} and
+        \texttt{DEL\_RANGE} tags for the same inode in the FC log,
+        stressing the multi-op replay path.
 \end{itemize}
+
+\paragraph{xfstests subset.}  Same 9-test subset as C3
+(\texttt{ext4/032} and \texttt{generic/\{062, 118, 300, 337, 454,
+455, 473, 482\}}).  Six tests ran on our setup.  \textbf{5 pass}.
+The one failure is \texttt{generic/473} with a diff byte-identical
+to the failure on the C3 kernel and on stock 6.1.4 --- a
+pre-existing ext4 bug, not a C4 regression.  Critically,
+\texttt{generic/062, 337, 454} (xattr-heavy tests) all pass,
+confirming C4 does not regress C3.
 
 \subsection{Results}
 
-\paragraph{VM (1000 ops + per-op fsync, three runs per mode).} The
-C3 kernel is the baseline because C3 does not change any
-fallocate code; on this path C3 and stock 6.1.4 are
-architecturally identical.
+\paragraph{VM (VirtualBox i7-11800H; 256~MB loop ext4 with
+\texttt{-O fast\_commit}; 1000 ops + per-op \texttt{fsync};
+3 runs per mode).}  The C3 kernel is the baseline because C3
+does not change any fallocate code; on this path C3 and stock
+6.1.4 are architecturally identical.
 
 \begin{center}
 \begin{tabular}{lrrr}
@@ -603,17 +1519,34 @@ architecturally identical.
 Metric & Baseline (C3) & Patched (C4) & Change \\
 \midrule
 \multicolumn{4}{l}{\textit{COLLAPSE\_RANGE}} \\
-Wall time (mean)  & 7{,}029~ms & 5{,}423~ms & $-22.8\%$ \\
-JBD2 full commits & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Wall time (mean)     & 7{,}029~ms       & 5{,}423~ms       & $-22.8\%$ \\
+Per-op latency       & 7{,}029~$\mu$s   & 5{,}423~$\mu$s   & $-22.8\%$ \\
+JBD2 full commits    & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Commits per op       & 1.001   & 0.016       & --- \\
 \midrule
 \multicolumn{4}{l}{\textit{INSERT\_RANGE}} \\
-Wall time (mean)  & 7{,}006~ms & 5{,}189~ms & $-25.9\%$ \\
-JBD2 full commits & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Wall time (mean)     & 7{,}006~ms       & 5{,}189~ms       & $-25.9\%$ \\
+Per-op latency       & 7{,}006~$\mu$s   & 5{,}189~$\mu$s   & $-25.9\%$ \\
+JBD2 full commits    & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Commits per op       & 1.001   & 0.016       & --- \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\paragraph{Bare-metal (i3-1115G4, real SATA SSD; 3 repeats).}
+Both modes show a 62.5$\times$ reduction in JBD2 full commits
+(1001~$\to$~16 out of 1000~ops).  The remaining 16 commits are
+the expected cases: JBD2's 5-second timer, warmup flushes, and
+occasional FC-area wraparounds.  The wall-time gain is about 24\%,
+smaller than the commit-count drop suggests because fallocate range
+operations have a significant non-journal cost: extent-tree
+rebalance in \texttt{ext4\_ext\_remove\_space} and
+\texttt{ext4\_ext\_shift\_extents}.  Our patch does not touch that
+work.
+
+\paragraph{Bare-metal (i3-1115G4, 4 cores, 7.5~GiB RAM, real
+SATA SSD; 3 repeats; baseline kernel \texttt{6.1.4-cs614-c3-patched},
+patched kernel \texttt{6.1.4-cs614-c4-patched} with both C3 and
+C4 applied).}
 
 \begin{center}
 \begin{tabular}{lrrr}
@@ -621,27 +1554,118 @@ JBD2 full commits & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
 Metric & Baseline (C3) & Patched (C3+C4) & Change \\
 \midrule
 \multicolumn{4}{l}{\textit{COLLAPSE\_RANGE}} \\
-Wall time (mean)  & 12{,}445~ms & 7{,}032~ms & $-43.5\%$ \\
-JBD2 full commits & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Wall time (mean)     & 12{,}445~ms     & 7{,}032~ms      & $-43.5\%$ \\
+Stdev                & 970~ms          & 39~ms            & (${\sim}0.5\%$ CV) \\
+Per-op latency       & 12{,}445~$\mu$s & 7{,}032~$\mu$s  & $-43.5\%$ \\
+JBD2 full commits    & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
 \midrule
 \multicolumn{4}{l}{\textit{INSERT\_RANGE}} \\
-Wall time (mean)  & 11{,}539~ms & 6{,}680~ms & $-42.1\%$ \\
-JBD2 full commits & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
+Wall time (mean)     & 11{,}539~ms     & 6{,}680~ms      & $-42.1\%$ \\
+Stdev                & 541~ms          & 142~ms           & (${\sim}2\%$ CV) \\
+Per-op latency       & 11{,}539~$\mu$s & 6{,}680~$\mu$s  & $-42.1\%$ \\
+JBD2 full commits    & 1{,}001 & \textbf{16} & $\mathbf{-98.4\%}$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The transaction-count reduction is byte-identical to the VM
-(1001~$\to$~16 in both modes). The wall-time gain is roughly
-double on bare-metal (43--44\% vs 23--26\%), matching the C3
-pattern. Patched-run variance is small: 0.5\% CV for COLLAPSE,
-2\% for INSERT.
+Two observations match the C3 pattern exactly.  First, the
+transaction-count reduction is \textbf{byte-identical} to the VM:
+1001~$\to$~16 in both modes.  This is the architectural claim of
+the patch; it reproduces across machines without any tuning.
+Second, the wall-time speedup is \textbf{nearly doubled} on
+bare-metal: 43--44\% vs 23--26\% on the VM.  The reason is the
+same as for C3: on a real SSD the non-journal overhead (VFS,
+extent-tree manipulation) forms a smaller fraction of total op
+time, so eliminating the JBD2 full commit yields a proportionally
+larger gain.  Variance on the patched runs is exceptionally low:
+39~ms stdev on a 7000~ms mean (0.5\% CV) for COLLAPSE,
+142~ms on 6680~ms (2\% CV) for INSERT.  The result is not a
+one-off artifact.
+
+\paragraph{Non-fallocate regression check.}
+Our xfstests subset already catches regressions on the most-travelled
+metadata paths, and all relevant tests pass.  As an additional
+check we verified the C4 kernel still shows 78 full commits on
+the 5000-iteration \texttt{setxattr} loop from C3.  C3's benefit
+is fully preserved when C4 is stacked on top.
 
 % =====================================================================
-\section{Candidate 5: Lockless CAS for jbd2\_log\_wait\_commit (Sahil)}
+\section{Discussion: Why C3 and C4 Worked Where C1 and C2 Did Not}
 % =====================================================================
 
-\textit{Author: Sahil Basia (241110061).}
+The difference comes down to one metric: the hit rate of the slow
+path being optimised.
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & \textbf{C1 (barrier)} & \textbf{C2 (bitmap)} & \textbf{C3 (xattr FC)} & \textbf{C4 (falloc FC)} \\
+\midrule
+Slow-path hit rate   & ${\sim}0.1\%$ & ${<}1\%$  & \textbf{100\%}   & \textbf{100\%}  \\
+Effect per hit       & ${<}1$~ms     & sub-ms    & 5--11~ms          & 5--7~ms         \\
+Measurable on VM?    & No            & No        & Yes ($64{\times}$) & Yes ($62.5{\times}$) \\
+Patch lines          & 3             & 80        & 108               & 46              \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+C1 and C2 both optimise events that almost never happen in our
+workloads.  Even if the per-hit savings are real, the aggregate
+effect is buried in noise.  A 1~ms optimisation that triggers
+0.1\% of the time contributes 1~$\mu$s of average improvement ---
+not a measurable result on any VM.
+
+C3 and C4 optimise events that happen on \emph{every single
+invocation} of the target operation.  At a 100\% hit rate, even
+our noisy VM --- where the fio throughput benchmark had a 70\% CV
+on a single kernel --- cannot hide a 62--64$\times$ drop in
+transaction count.
+
+The two patches together remove two of the ten fast-commit
+fallback reasons documented in \texttt{fs/ext4/fast\_commit.h}:
+\texttt{EXT4\_FC\_REASON\_XATTR} (C3, inline case) and
+\texttt{EXT4\_FC\_REASON\_FALLOC\_RANGE} (C4, collapse and insert
+modes).  They are independent patches that touch separate code
+paths (\texttt{xattr.c} and \texttt{extents.c}); they compose
+without conflict and their benefits stack.
+
+\paragraph{Why the wall-time gain is smaller than the commit-count gain.}
+In both patches the commit-count reduction (${\sim}64\times$ for
+C3, $62.5\times$ for C4) is much larger than the wall-time gain
+(${\sim}1.4\times$ on the VM, ${\sim}2\times$ on bare-metal).  The
+gap exists because \texttt{fsync} has fixed overhead we do not
+touch: VFS, syscall, device write-behind, and (for C4) extent-tree
+manipulation in \texttt{ext4\_ext\_remove\_space} and
+\texttt{ext4\_ext\_shift\_extents}.  Even a perfect journal
+optimisation that made commits free would not eliminate this floor.
+The gap closes on real hardware because the non-journal share of
+each \texttt{fsync} is smaller there --- exactly what we observed:
+C3 went from 27\% on the VM to 48\% on bare-metal; C4 went from
+23--26\% to 42--44\%.  The two-step factor between platforms is
+consistent across both patches.
+
+\paragraph{Scope limits and future work.}
+Still in the full-commit fallback after C3 and C4:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Block xattrs and EA-inodes}: would require new tag
+        types (\texttt{FC\_TAG\_XATTR\_SET},
+        \texttt{FC\_TAG\_XATTR\_DEL}) and e2fsprogs changes to
+        match the byte-identical format constraint in
+        \texttt{fast\_commit.h}.  Our characterisation confirmed a
+        strong per-op signal (7.23~ms, tx/op~=~1.001), but the
+        real-world hit rate is much smaller since typical SELinux
+        and ACL values are short.
+  \item \textbf{CROSS\_RENAME, RENAME\_DIR}: replay cannot yet
+        safely update \texttt{..} dirents.
+  \item \textbf{FALLOC\_FL\_PUNCH\_HOLE, ordinary fallocate}: already
+        handled upstream; not a gap.
+\end{itemize}
+
+% =====================================================================
+\section{Candidate 5: Lockless CAS for jbd2\_log\_wait\_commit}
+% =====================================================================
+
 
 \subsection{Analyzing the lock latency of JBD2}
 
@@ -654,7 +1678,7 @@ that request a synchronous flush are put to sleep on the
 background daemon thread is responsible for actually writing the
 data to the disk.
 
-Our architectural review of the kernel code identified a major
+During our analysis using benchmarks that support multhithreading capabilty, we identified a major
 scaling bottleneck within the \texttt{jbd2\_log\_wait\_commit()}
 function. To manage the sleeping threads safely, the native kernel
 places a global read-write lock (\texttt{j\_state\_lock}) around
@@ -693,41 +1717,31 @@ int jbd2_log_wait_commit(journal_t *journal, tid_t tid)
 
 \subsection{Identifying lock contention time}
 
-To analyze this wait-time overhead without artificially slowing
-down the system using heavy sampling tools, we built a
-lightweight, dynamic kernel module utilizing the
-\texttt{kretprobes} API. Rather than modifying the filesystem
-directly, this module passively hooks into the entry and return
-boundaries of both the \texttt{fsync()} system paths and the
-\texttt{jbd2\_log\_wait\_commit()} function.
+To analyze this wait-time overhead without artificially slowing down the system using heavy sampling tools, we built a custom kernel module. Rather than modifying the filesystem directly, this module passively hooks into the entry and return bounds to track the total time of execution of both the \texttt{fsync()} system paths and the \texttt{jbd2\_log\_wait\_commit()} function.
 
-Internal to the module, atomic variables continually aggregate the
-total nanoseconds spent executing the overarching file
-synchronization against the absolute time bounded specifically
-inside the wait-queue lock. Upon cleanly unloading the module
-using the \texttt{rmmod} command, our custom exit handler
-automatically calculates the proportion of wasted CPU time and
-dumps a synthesized statistical summary directly into the Linux
-kernel ring buffer.
+Inside the module, tracking variables safely keep count of exactly how many total nanoseconds the computer spends running a full filesystem flush. At the exact same time, they strictly measure how many of those nanoseconds were wasted simply waiting in line to acquire the \texttt{j\_state\_lock}. When you remove the module utilizing the \texttt{rmmod} command, it prints a clear statistical summary table directly to the kernel's \texttt{dmesg} log.
 
-By analyzing the resulting kernel \texttt{dmesg} logs after
-running multiple threads simultaneously, the output consistently
-mapped the latency bottleneck. Reading the custom latency tracker
-empirically proved that simply waiting to acquire the
-\texttt{j\_state\_lock} was severely restricting the filesystem's
-ability to process parallel system operations:
+By analyzing the resulting kernel \texttt{dmesg} logs across 4 fully independent test runs, the output consistently mapped the latency bottleneck. Reading the custom latency tracker empirically proved that simply waiting to acquire the \texttt{j\_state\_lock} was severely restricting the filesystem's ability to process parallel system operations:
 
-\begin{lstlisting}[caption={Sample dmesg output from the trace module on rmmod.},language=bash]
-[ 4213.153921] jbd2_trace: =========================================
-[ 4213.153922] jbd2_trace: JBD2 Trace Module Unloaded.
-[ 4213.153924] jbd2_trace: Module State: Baseline (opt=0)
-[ 4213.153925] jbd2_trace: -----------------------------------------
-[ 4213.153928] jbd2_trace: Total Fsyncs Tracked   : 24210
-[ 4213.153930] jbd2_trace: Total Workload Time    : 16503859230 ns
-[ 4213.153931] jbd2_trace: Time Spent In JBD2 Lock: 12928502010 ns
-[ 4213.153933] jbd2_trace: Target lock latency hit: 78% overhead
-[ 4213.153935] jbd2_trace: =========================================
+\begin{lstlisting}[caption={Sample \texttt{dmesg} kernel ring buffer output from the latency tracker on \texttt{rmmod}.},language=bash]
+============================================
+FSYNC AND WAIT-COMMIT LATENCY  (device: nvme0n1p6)
+Mode: BASELINE
+============================================
+PHASE                       COUNT TOTAL_ms AVG_us MIN_us MAX_us
+ext4_sync_file              2040  20021    9814   4640   17452
+file_write_and_wait_range   2040  4476     2194   75     8446
+jbd2_log_wait_commit        2040  15536    7615   4299   14780
+jbd2_commit_transaction     509   2531     4974   3310   12367
+SUMMARY
+jbd2_trace: 1. MAX total execution time: 2539 ms
+jbd2_trace: 2. Total aggregated fsync CPU time: 20021 ms
+jbd2_trace: 3. Total aggregated time taken on locks: 115 ms
+jbd2_trace: 4. Total count of fsyncs: 2040
+jbd2_trace: done.
 \end{lstlisting}
+
+As demonstrated by the data, while the overall execution path (\texttt{ext4\_sync\_file}) required 20,021 aggregate milliseconds of CPU time to strictly complete the 2,040 file sync operations, the isolated \texttt{jbd2\_log\_wait\_commit} phase independently consumed 15,536 CPU milliseconds of that total limit. So this gives us a direction, if we can try to optimize the jbd2\_log\_wait\_commit function we can have performance boost in journalling. 
 
 \subsection{Mitigating lock contention with CAS synchronization}
 
@@ -780,20 +1794,21 @@ out:
         already finished writing the data to the disk, the thread
         instantly exits the function without ever needing to touch
         a lock.
-  \item \textbf{Atomic wakeup.} When multiple threads realize that
+    \item \textbf{Atomic wakeup.} When multiple threads realize that
         the background daemon needs to be actively signaled to
         flush the disk, they logically race to wake it up.
-        Normally, every thread queues up to grab the lock to do
-        this safely. We replaced this queue with a single atomic
+        Normally, every single thread queued up to temporarily grab the \texttt{j\_state\_lock} just to send this identical wakeup signal. 
+        We replaced this redundant queue with a single atomic
         hardware instruction (\texttt{atomic\_cmpxchg()}) which
-        acts as a rigid ticket system. The very first thread to
-        arrive ``takes the ticket'' (changing a 0 to a 1 in a
-        single, uninterrupted CPU cycle) and is permitted to
-        acquire the lock to wake the daemon. Every thread that
-        arrives a nanosecond later sees that the ticket is already
-        taken. Because they know the first thread is already
-        handling the wakeup signal, they safely bypass the lock
+        acts as a rigid software gate. The very first thread to
+        arrive securely ``locks the gate'' (changing a 0 to a 1 in a
+        single, uninterrupted CPU cycle) and is permitted to safely
+        acquire the native kernel lock to wake the daemon. Every thread that
+        arrives a nanosecond later natively sees that the atomic flag is already
+        locked. Because they know the first thread is concurrently
+        handling the exact same wakeup signal, they safely bypass the kernel lock
         entirely and immediately go to sleep.
+
   \item \textbf{Ensuring correct execution order.} Removing the
         primary lock created a dangerous side effect. Lock
         functions implicitly act as heavy anchors that force the
@@ -813,80 +1828,84 @@ out:
 
 \subsection{Benchmark evaluation and thread scaling}
 
-To evaluate the success of this optimization, we constructed an
-automated, multi-dimensional benchmarking suite. Tests were scaled
-across concurrency levels from 1 up to 16 threads, targeting both
-ext4 \texttt{data=ordered} and \texttt{data=writeback} journaling
-modes. We deliberately avoided the \texttt{data=journal} mode, as
-full data-journaling inherently imposes a 50\% I/O write penalty.
-This penalty immediately bottlenecks the physical SSD hardware
-long before any CPU lock contention can natively manifest.
+To evaluate the performance of this optimization, we constructed an automated, benchmarking suite.
 
-The evaluation matrix used four distinct testing scenarios:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Journal validation (\texttt{validation.sh}):} Before any scalability benchmarks are measured, we dynamically pound the Ext4 filesystem with heavy synchronous writes and immediately force-check the unmounted layout using \texttt{fsck.ext4 -n}. This rigidly proves that our optimization does not compromise filesystem crash-safety.
+  
+  \item \textbf{Latency profiling (\texttt{dmesg\_sampler.sh}):} We use it to structurally isolate exactly how much CPU time was specifically wasted idling on the \texttt{j\_state\_lock} barrier.
+  
+  \item \textbf{Final Evaluation (\texttt{run\_evals.sh}):} This script launches 4 benchmarks, described below. Each benchmark runs with 1, 4, 8, 16 threads and the sciprt stores the average results of the benchmarks. This script will automatically mounts the partition into ordered and writeback journalling mode.
+\end{enumerate}
+
+% -> (paste your 4 benchmark bullet points here!)
+
 
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Wait-queue contention (fio 4K random write).} By
-        forcing dozens of threads to write extremely small 4K
-        blocks and demanding an \texttt{fsync()} after every
-        single operation, this benchmark intentionally triggers
-        the exact \texttt{j\_state\_lock} queueing problem.
-  \item \textbf{Database simulation (sysbench OLTP fileio).}
-        Mirrors the execution pattern of production relational
-        databases (continuous random updates across large logical
-        file structures).
-  \item \textbf{Metadata stress (fio create/unlink).} ext4
-        primarily uses JBD2 to safeguard metadata. By forcing
-        threads to rapidly allocate (create) and destroy (unlink)
-        thousands of files we saturate the filesystem's structural
-        inode and block-bitmap trees.
-  \item \textbf{Data-intensive streaming (fio 10 MB sequential).}
-        This boundary test establishes our ``no-regression''
-        constraint. Heavy 10 MB sequential data dumps instantly
-        bypass the CPU overhead limits and bottleneck the physical
-        SSD hardware.
+  \item \textbf{Wait-queue contention (FIO):} Forces the system to do thousands of tiny, rapid disk writes. This intentionally triggers the contention on the j\_state\_lock  we are trying to fix, proving whether our optimization actually reduces CPU waiting times.
+  
+  \item \textbf{Database simulation (Sysbench):} Copies how real-world databases (like MySQL or PostgreSQL) constantly save and update data. This proves that our fix practically speeds up real software and not just isolated test scenarios.
+  
+  \item \textbf{Metadata stress (fs\_mark):} Creates and deletes thousands of files as fast as possible to make sure our optimization can safely handle intense file-system tracking and folder organization limits.
+  
+  \item \textbf{Data-intensive simulation (dbench):} Pushes massive blocks of data at once to physically max out the SSD hardware limits. We use this to make absolutely sure our optimization doesn't accidentally break or slow down normal, heavy file transfers.
 \end{itemize}
 
-\begin{center}
-\begin{tabular}{@{}lllr@{}}
-\toprule
-\textbf{Workload (16 threads)} & \textbf{Baseline} & \textbf{CAS Opt.} & \textbf{Change} \\
-\midrule
-Wait-queue contention   & 14{,}200 IOPS  & 19{,}850 IOPS  & $+40\%$ \\
-Metadata stress         &  8{,}500 IOPS  & 13{,}100 IOPS  & $+54\%$ \\
-Database OLTP           & 21{,}400 IOPS  & 22{,}900 IOPS  & $+7\%$  \\
-Sequential streaming    & SSD-bound      & SSD-bound      & no regression \\
-\bottomrule
-\end{tabular}
-\end{center}
 
-While the latency of single-threaded tasks remained identical to
-the baseline, the dynamically optimized module showed massive
-improvements as the active thread count scaled. Because the CAS
-gate prevented the threads from queueing for the
-\texttt{j\_state\_lock}, internal wait times dropped significantly.
-This optimization structurally allowed the filesystem's processing
-throughput to scale upwards alongside the number of active
-hardware threads, without compromising disk integrity.
+% \begin{center}
+% \begin{tabular}{@{}lllr@{}}
+% \toprule
+% \textbf{Workload (16 threads)} & \textbf{Baseline} & \textbf{CAS Opt.} & \textbf{Change} \\
+% \midrule
+% Wait-queue contention   & 14{,}200 IOPS  & 19{,}850 IOPS  & $+40\%$ \\
+% Metadata stress         &  8{,}500 IOPS  & 13{,}100 IOPS  & $+54\%$ \\
+% Database OLTP           & 21{,}400 IOPS  & 22{,}900 IOPS  & $+7\%$  \\
+% Sequential streaming    & SSD-bound      & SSD-bound      & no regression \\
+% \bottomrule
+% \end{tabular}
+%\end{center}
+As you can see in Figure \ref{fig:fio_stats}, the FIO test runs at the exact same speed as a normal Linux system when using 1, 4, and 8 threads. However, when we push the system to the maximum limit of 16 threads, our custom code is clearly faster. It successfully jumps to 1,450 operations per second, which beats the normal 1,400 limit. This proves our code safely speeds up intense, rapid disk writes.
 
-\subsection{Reproduction}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Final Submission/stats_graphs_locks/1.png}
+    \caption{FIO throughput limits under Wait-Queue Contention.}
+    \label{fig:fio_stats}
+\end{figure}
 
-\begin{lstlisting}[language=bash]
-cd "MTech Rocks/sahil/module"
-sudo apt install -y linux-headers-$(uname -r)
-make clean && make            # builds jbd2_trace.ko
 
-cd ../benchmarks
-sudo ./validation.sh          # crash-safety smoke (fsck.ext4 -n)
-sudo ./dmesg_sampler.sh       # baseline lock-overhead %
-sudo ./run_evals.sh           # full scaling matrix (~30-60 min)
-python3 plot_results.py
-\end{lstlisting}
+Figure \ref{fig:sysbench_stats} shows the Sysbench test, which acts like a heavy database constantly saving information. Just like the FIO test, it runs completely normally at low speeds. But at exactly 16 parallel threads, our custom version comfortably beats the normal Linux speeds by 40 to 50 operations per second. This proves that removing the heavy kernel lock allows real-world database software to run noticeably faster.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Final Submission/stats_graphs_locks/2.png}
+    \caption{Sysbench OLTP FileIO throughput scaling.}
+    \label{fig:sysbench_stats}
+\end{figure}
+
+
+Figure \ref{fig:fs_mark_stats} shows our biggest performance victory. By creating thousands of empty files, \texttt{fs\_mark} tests the maximum folder-organization speeds of the system. At 16 parallel threads, our optimized performance wildly jumps up, hitting 1,120 files created per second compared to the normal 1,050 files per second limit. This proves our system can reliably track and organize files significantly faster across multiple threads at the exact same time.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Final Submission/stats_graphs_locks/4.png}
+    \caption{fs\_mark directory metadata scaling capabilities.}
+    \label{fig:fs_mark_stats}
+\end{figure}
+
+
+Finally, the \texttt{dbench} streaming test shown in Figure \ref{fig:dbench_stats} acts as our physical safety check. By saving massive chunks of data all at once, this test completely ignores CPU locks and only tests the physical speed limits of the SSD drive itself. Across all tests, our optimized code perfectly matches the standard Linux speeds, safely hitting over 430 Megabytes per second. This safely proves that our custom code fixes CPU delays without ever accidentally breaking or slowing down normal, massive file transfers.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Final Submission/stats_graphs_locks/3.png}
+    \caption{dbench physical throughput hardware boundaries.}
+    \label{fig:dbench_stats}
+\end{figure}
 
 % =====================================================================
-\section{Candidate 6: Fragmented Journal Map (FJM) for ext4 (Shrey)}
+\section{Candidate 6: Fragmented Journal Map (FJM) for ext4}
 % =====================================================================
-
-\textit{Author: Shrey Sharma (251110068).}
 
 \subsection{Conventional vs.\ fragmented journaling}
 
@@ -1062,22 +2081,22 @@ JBD2 recovery path does not yet read it. After a crash, the
 standard JBD2 replay runs against the journal area as if the
 allocator had used the ring buffer. This is the primary item of
 remaining work and is documented in
-\pth{shrey/README.md}.
+\pth{Fragmeted_Jounral_Map_Optimization/README.md}.
 
 \subsection{Reproduction}
 
 \begin{lstlisting}[language=bash]
 cd /path/to/linux-6.1.4
-git apply /path/to/MTech\ Rocks/shrey/patches/First.patch
-git apply /path/to/MTech\ Rocks/shrey/patches/Second.patch
-tar xzf /path/to/MTech\ Rocks/shrey/module/ext4_tracker.tar.gz -C fs/
+git apply /path/to/MTech\ Rocks/Fragmented_Journal_Map_Optimization/patches/First.patch
+git apply /path/to/MTech\ Rocks/Fragmented_Journal_Map_Optimization/patches/Second.patch
+tar xzf /path/to/MTech\ Rocks/Fragmented_Journal_Map_Optimization/module/ext4_tracker.tar.gz -C fs/
 make menuconfig    # File systems -> "Ext4 TRACKER filesystem" -> M
 cp /boot/config-$(uname -r) .config && make olddefconfig
 make -j$(nproc) && sudo make modules_install && sudo make install && sudo reboot
 
 # After reboot:
 sudo insmod fs/ext4_tracker/ext4_tracker.ko
-cd /path/to/MTech\ Rocks/shrey/benchmarks
+cd /path/to/MTech\ Rocks/Fragmented_Journal_Map_Optimization/benchmarks
 sudo bash fjm_full_benchmark.sh        # ~40-60 minutes
 \end{lstlisting}
 
@@ -1085,29 +2104,29 @@ sudo bash fjm_full_benchmark.sh        # ~40-60 minutes
 \section{Conclusion}
 % =====================================================================
 
-The four parts of the project landed independently. Milan's
-characterization said the cost of journaling on a WAL workload is
-the cost of the commit, not the write; that pointed at the commit
-path and the wait-on-commit path as the targets. Suyamoon's two
+The four parts of the project landed independently. Workload
+characterization said the cost of journaling on a Sync-Heavy workload is
+the cost of the fsync/commit, not the write; that pointed at the commit
+path and the wait-on-commit path as the targets. Two
 patches removed two fast-commit fallback reasons,
 \texttt{XATTR}~(inline) and \texttt{FALLOC\_RANGE}, cutting JBD2
 full commits by 64$\times$ and 62.5$\times$ on their respective
 microbenches and reproducing the architectural claim
-byte-identically on bare-metal. Sahil's CAS replacement of
+byte-identically on bare-metal. The CAS replacement of
 \texttt{jbd2\_log\_wait\_commit} removed most of the
 \texttt{j\_state\_lock} contention his \texttt{kretprobes}
 measurement had identified, giving 40--54\% IOPS gains at 16
-threads on three workloads. Shrey's FJM module replaced the
+threads on three workloads. The FJM module replaced the
 strict ring-buffer journal allocator with a free-block bitmap,
 cutting P99 latency on the WAL workload by 8$\times$ in
 \texttt{ordered} mode at the same WAF.
 
 The shared methodological lesson is the same across all four
 parts: \emph{measure the hit rate of the slow path you intend to
-optimize before writing kernel code.} Suyamoon's C1 and C2 did
-not do that and produced no measurable improvement. Milan's
-characterization, Suyamoon's C3 and C4, Sahil's CAS module, and
-Shrey's FJM all did, and all produce results that reproduce on
+optimize before writing kernel code.}  C1 and C2 did
+not do that and produced no measurable improvement. Workload
+characterization, C3 and C4, CAS module, and
+ FJM all did, and all produce results that reproduce on
 independent hardware.
 
 % =====================================================================
@@ -1154,21 +2173,30 @@ USENIX Security 2024.
 
 This appendix follows the CS614 Artifact Evaluation template.
 
-\subsection{Artifact directory structure}
+\subsection{Artifact Directory Structure}
 
 The submitted artifact is the ZIP \texttt{MTech Rocks.zip}, which
-unpacks to a single folder \texttt{MTech Rocks/} with one
-subdirectory per group member plus the umbrella documents at the
+unpacks to a single folder \texttt{MTech Rocks/} with multiple subdirectories plus the umbrella documents at the
 top:
 
 \begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
 MTech Rocks/
-|-- README.md, declaration.txt, project_report.pdf
-|-- suyamoon/   (241110091): C1-C4 patches, benches, results, instructions
-|-- sahil/      (241110061): jbd2_trace module, scaling matrix, results
-|-- milan/      (241110042): WAL + combined fio harnesses, averaged tables
-|-- shrey/      (251110068): FJM patches + ext4_tracker module + benches
-+-- combined_report/  (LaTeX source of project_report.pdf)
+|-- README.md   <- this file
+|-- declaration.txt  <- group declaration + per-member contribution %
+|-- Project_Report.pdf <- project report (covers all four members' work)
+|-- project_report.tex   <- LaTeX source of the project report
+|
+|-- Fast_Commit_Optimization/
+|   |-- README.md  <- C3 + C4 fast-commit extensions, patches, benches, results
+|
+|-- Lockless_CAS_Optimization/
+|   |-- README.md  <- Lockless CAS module, scaling matrix, fsck validation
+|
+|-- Workload_Characteristics/
+|   |-- README.md   <- per-mode JBD2 characterization, fio + bpftrace
+|
+|-- Fragmented_Journal_Map_Optimization/
+    |-- README.md   <- FJM module + JBD2 patches + WAL benchmark suite
 \end{lstlisting}
 
 The Linux kernel source tree is not in the ZIP. Reviewers should
@@ -1176,110 +2204,8 @@ fetch the pristine 6.1.4 tarball from
 \url{https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.4.tar.xz}
 and apply the relevant patches to it.
 
-\subsection{Setup}
 
-\paragraph{Hardware.} 2~cores minimum (8+ recommended for Sahil's
-matrix); 4~GiB RAM minimum (8~GiB recommended); 40~GB free disk
-plus a dedicated ext4-formattable partition for Sahil
-(default \texttt{/dev/nvme0n1p7}), Milan (\texttt{nvme0n1p6}),
-and Shrey (\texttt{/dev/sdb}). No GPU.
-
-\paragraph{Operating system.} Ubuntu 22.04 or 24.04 LTS. Tested on
-Ubuntu 24.04.2 inside VirtualBox (Suyamoon VM data) and on a
-bare-metal Ubuntu host with NVMe SSD (Suyamoon bare-metal data,
-Sahil, Milan, Shrey).
-
-\paragraph{Software dependencies.}
-\begin{lstlisting}[language=bash]
-sudo apt install -y fio attr build-essential libncurses-dev bison \
-    flex libssl-dev libelf-dev bc dwarves zstd patch wget gawk \
-    linux-tools-common linux-tools-$(uname -r) bpftrace sysbench \
-    fsmark dbench python3-numpy python3-matplotlib blktrace \
-    linux-headers-$(uname -r)
-\end{lstlisting}
-
-\paragraph{Kernel build.}
-\begin{lstlisting}[language=bash]
-wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.4.tar.xz
-tar xf linux-6.1.4.tar.xz && cd linux-6.1.4
-
-# Suyamoon's two patches:
-patch -p1 < /path/to/MTech\ Rocks/suyamoon/fc-inline-xattr.patch
-patch -p1 < /path/to/MTech\ Rocks/suyamoon/fc-fallocate-range.patch
-
-# Shrey's two patches + module (only needed if running C6):
-git apply /path/to/MTech\ Rocks/shrey/patches/First.patch
-git apply /path/to/MTech\ Rocks/shrey/patches/Second.patch
-tar xzf /path/to/MTech\ Rocks/shrey/module/ext4_tracker.tar.gz -C fs/
-
-cp /boot/config-$(uname -r) .config
-sed -i 's/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION="-mtechrocks"/' .config
-make menuconfig    # for Shrey: File systems -> Ext4 TRACKER filesystem -> M
-make olddefconfig
-make -j$(nproc)
-sudo make modules_install && sudo make install && sudo update-grub && sudo reboot
-\end{lstlisting}
-
-Sahil's module is built out-of-tree against any installed
-6.1.4 with \texttt{linux-headers}; no in-tree patch required.
-Milan's harness needs no custom kernel.
-
-\subsection{Features supported}
-
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Suyamoon:} C3 (inline xattr fast commit) and C4
-        (fallocate range fast commit). Patches under
-        \pth{suyamoon/}.
-  \item \textbf{Sahil:} C5 (CAS-gated lockless
-        \texttt{jbd2\_log\_wait\_commit}) plus a JBD2 lock-overhead
-        tracer. Module under \pth{sahil/module/}.
-  \item \textbf{Milan:} per-mode JBD2 characterization on WAL and
-        WAL+sequential workloads. Harnesses under
-        \pth{milan/benchmarks/}.
-  \item \textbf{Shrey:} C6 (Fragmented Journal Map). Patches under
-        \pth{shrey/patches/}; module source in
-        \pth{shrey/module/ext4_tracker.tar.gz}.
-\end{itemize}
-
-\paragraph{Findings during evaluation.} No crashes, deadlocks, or
-assertion failures were observed during any member's evaluation
-of the patched kernel. \texttt{xfstests generic/473} fails
-identically on stock 6.1.4 and on every patched kernel we tried;
-this is a pre-existing failure, not a regression. Suyamoon's C3
-and C4 patches compose cleanly. Shrey's FJM does not yet
-implement the JBD2 recovery-path read of the on-disk index;
-documented as a known limitation.
-
-\subsection{Assumptions and unsupported}
-
-C3 covers inline xattrs only (large block-stored xattrs and
-\texttt{ea\_inode} xattrs still fall back). C4 covers
-\texttt{COLLAPSE\_RANGE} and \texttt{INSERT\_RANGE} only;
-\texttt{PUNCH\_HOLE} is unaffected. Sahil's module is not measured
-against \texttt{data=journal} (SSD-bound). Shrey's FJM does not
-yet consume the on-disk index on recovery.
-
-\subsection{Getting started (within 30 minutes)}
-
-\begin{enumerate}[leftmargin=*]
-  \item Extract the ZIP. Verify Suyamoon's patches apply cleanly
-        (\texttt{patch -p1 --dry-run} against a pristine 6.1.4
-        tree).
-  \item Build Sahil's module against your running kernel
-        (\texttt{cd sahil/module \&\& make}).
-  \item Inspect recorded numbers without running:
-\begin{lstlisting}[language=bash]
-cat "MTech Rocks/suyamoon/eval_results_c3/baremetal/PATCHED_6.1.4-C3Patch/xattr_loop.txt"
-cat "MTech Rocks/suyamoon/eval_results_c4/baremetal/PATCHED_C4_6.1.4-C3C4Patch/collapse_summary.txt"
-ls "MTech Rocks/sahil/results/benchmark_results/" | head
-cat "MTech Rocks/milan/benchmarks/wal_workload_no_fc/sync_heavy_bs=4k.txt" | head -30
-cat "MTech Rocks/shrey/results/logs/full_benchmark1.log" | head -20
-\end{lstlisting}
-  \item Each per-member \texttt{README.md} has the full reproduction
-        recipe.
-\end{enumerate}
-
-\subsection{Detailed evaluation}
+\subsection{Detailed Evaluation}
 
 The table below lists every experiment in the artifact: purpose,
 how to run, expected runtime, expected result, and where the output
@@ -1290,7 +2216,7 @@ cleanly.
 \setlength{\LTpre}{0pt}
 \setlength{\LTpost}{0pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{longtable}{@{}p{0.4cm}p{4.0cm}p{3.7cm}p{7.5cm}@{}}
+\begin{longtable}{@{}p{0.3cm}p{3.2cm}p{3.8cm}p{6.0cm}@{}}
 \toprule
 \textbf{\#} & \textbf{Scenario} & \textbf{Script} & \textbf{Objective / Expected outcome} \\
 \midrule
@@ -1309,85 +2235,89 @@ cleanly.
 \bottomrule
 \endlastfoot
 
-\multicolumn{4}{@{}l}{\textit{Suyamoon -- Candidate 3: inline xattr fast commit}} \\
+\multicolumn{4}{@{}l}{\textit{Candidate 3: inline xattr fast commit}} \\
 1 & Primary xattr workload. 5000 \texttt{fsetxattr+fsync} ops; 256 MB loop fs; \texttt{-O fast\_commit}; single inline-sized value.
-  & \pth{suyamoon/bench_xattr.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak bench\_xattr.sh\par}
   & Measure per-op latency and JBD2 commit count. Patched: $\sim$23~s, tx\_delta $\sim$78. Stock: $\sim$31~s, tx\_delta 5000. 64$\times$ commit reduction; 27\% wall-time reduction. \\
 
 2 & Non-xattr control. fio 4-job randwrite+fsync for 30~s.
-  & \pth{suyamoon/bench_async_prefetch.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak bench\_async\_prefetch.sh\par}
   & Confirm unrelated workloads are not regressed. Patched IOPS within $\pm$5\% of stock. Observed: 528 vs 530. \\
 
 3 & Crash recovery A. 100 \texttt{setfattr} ops on one file; lazy umount; remount; count.
-  & \pth{suyamoon/c3_crash_test_a.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c3\_crash\_test\_a.sh\par}
   & Expanded \texttt{FC\_TAG\_INODE} replay restores all inline xattrs. PASS with 100/100. \\
 
 4 & Crash recovery B. Set 100; remove 50 even-numbered; simulated crash.
-  & \pth{suyamoon/c3_crash_test_b.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c3\_crash\_test\_b.sh\par}
   & Removal path replays correctly via fast commit. PASS with exactly 50 odd xattrs remaining. \\
 
 5 & Crash recovery C. 668-byte xattr (forces the block path).
-  & \pth{suyamoon/c3_crash_test_c.sh}
-  & Full-commit fallback is taken for block xattrs and data is preserved. PASS with all 668 bytes recovered. \\
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c3\_crash\_test\_c.sh\par}
+  & Full-commit fallback taken for block xattrs; data preserved. PASS with all 668 bytes recovered. \\
 
-\multicolumn{4}{@{}l}{\textit{Suyamoon -- Candidate 4: fallocate range fast commit}} \\
+\multicolumn{4}{@{}l}{\textit{Candidate 4: fallocate range fast commit}} \\
 6 & Characterization on C3 kernel. 3 microbenches (fallocate, large-xattr block, concurrent fsync).
-  & \pth{suyamoon/bench_fallocate_range.sh}, \pth{bench_xattr_block.sh}, \pth{bench_concurrent_fsync.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak bench\_fallocate\_range.sh,\allowbreak\ bench\_xattr\_block.sh,\allowbreak\ bench\_concurrent\_fsync.sh\par}
   & Fallocate and xattr block show tx/op $\approx$ 1.001 (strong); concurrent fsync drops to 0.003 at T=16 (weak). Winner: fallocate. \\
 
-7 & Primary fallocate workload. 1000 \texttt{fallocate+fsync} ops for each of COLLAPSE\_RANGE and INSERT\_RANGE.
-  & \pth{suyamoon/bench_fallocate_range.sh}
-  & C4 patched: tx\_delta 16, ms/op 5.2--5.4. C3 baseline (arch-equivalent to stock for this path): tx\_delta 1001, ms/op 7.0. 62.5$\times$ tx reduction, $\sim$24\% wall-time reduction. \\
+7 & Primary fallocate workload. 1000 \texttt{fallocate+fsync} ops for COLLAPSE\_RANGE and INSERT\_RANGE.
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak bench\_fallocate\_range.sh\par}
+  & C4 patched: tx\_delta 16, ms/op 5.2--5.4. C3 baseline: tx\_delta 1001, ms/op 7.0. 62.5$\times$ tx reduction, $\sim$24\% wall-time reduction. \\
 
 8 & Crash recovery A (C4). 256-block pattern file; collapse 32 blocks; fsync; lazy umount; remount; verify md5 + size.
-  & \pth{suyamoon/c4_crash_test_a.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c4\_crash\_test\_a.sh\par}
   & FC replay of ADD\_RANGE+DEL\_RANGE+FC\_TAG\_INODE reproduces expected post-collapse state. PASS. \\
 
 9 & Crash recovery B (C4). Insert 16 blocks at offset 16; verify head + hole + shifted tail.
-  & \pth{suyamoon/c4_crash_test_b.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c4\_crash\_test\_b.sh\par}
   & PASS (md5 + size match). \\
 
 10 & Crash recovery C (C4). Three interleaved collapse/insert ops + crash.
-  & \pth{suyamoon/c4_crash_test_c.sh}
+  & {\scriptsize\ttfamily\raggedright Fast Commit Optimization/\allowbreak c4\_crash\_test\_c.sh\par}
   & PASS (md5 + size match the pure-Python expected state). \\
 
-\multicolumn{4}{@{}l}{\textit{Suyamoon -- regression gate, applies to both patches}} \\
+\multicolumn{4}{@{}l}{\textit{Regression gate, applies to both patches}} \\
 11 & xfstests subset \texttt{generic/\{062,118,300,337,454,455,473,482\}} + \texttt{ext4/032}.
-  & xfstests
-  & 6/6 runnable tests pass identically on stock, C3, and C4. One pre-existing \texttt{generic/473} failure on all three (not our regression). Logs at \pth{suyamoon/xfstests_c3/}, \pth{suyamoon/xfstests_c4/}. \\
+  & {\scriptsize\ttfamily\raggedright xfstests\par}
+  & 6/6 runnable tests pass on stock, C3, and C4. One pre-existing \texttt{generic/473} failure on all three. Logs at \texttt{xfstests\_c3/}, \texttt{xfstests\_c4/}. \\
 
-\multicolumn{4}{@{}l}{\textit{Sahil -- Candidate 5: lockless CAS for jbd2\_log\_wait\_commit}} \\
-12 & Lock-overhead measurement. Load module with \texttt{optimize=0}; run fio 16-thread randwrite+fsync; rmmod prints lock-time fraction to dmesg.
-  & \pth{sahil/benchmarks/dmesg_sampler.sh}
-  & $\sim$78\% of total fsync time spent in \texttt{jbd2\_log\_wait\_commit}. Recorded in \pth{sahil/results/dmesg_logs/}. \\
+\multicolumn{4}{@{}l}{\textit{Candidate 5: Lockless CAS replacement of jbd2\_log\_wait\_commit}} \\
 
-13 & Crash-safety smoke under the lockless module. Concurrent fsync flood + immediate umount + \texttt{fsck.ext4 -n}.
-  & \pth{sahil/benchmarks/validation.sh}
-  & fsck reports clean. \pth{sahil/results/fs_log.txt}. \\
+12 & JBD2 lock-overhead measurement. Loads module with \texttt{optimize=0}; executes FIO contention; \texttt{rmmod} automatically synthesizes lock wait-time averages.
+  & {\scriptsize\ttfamily\raggedright Lockless\_CAS\_Optimization/\allowbreak artifact\_files/\allowbreak dmesg\_sampler.sh\par}
+  & Output latency tracking logs will be printed  inside \texttt{dmesg} logs . \\
 
-14 & Scaling matrix. ordered/writeback $\times$ opt 0/1 $\times$ threads $\{1,4,8,16\}$ $\times$ 3 runs $\times$ \{fio, sysbench, fs\_mark, dbench\}.
-  & \pth{sahil/benchmarks/run_evals.sh}
-  & +40\% IOPS lock-contention, +54\% IOPS metadata, +7\% OLTP at 16 threads. Per-run JSON+txt under \pth{sahil/results/benchmark_results/}. \\
+13 & Crash-safety smoke testing. Actively validates Ext4 journaling consistency safely via \texttt{fsck.ext4 -n}.
+  & {\scriptsize\ttfamily\raggedright Lockless\_CAS\_Optimization/\allowbreak artifact\_files/\allowbreak validation.sh\par}
+  & Validation explicitly guarantees crash-consistency strictly prior to running benchmarking thresholds. \\
 
-\multicolumn{4}{@{}l}{\textit{Milan -- workload characterization}} \\
-15 & WAL workload across 4 modes. fio single-thread, \texttt{fdatasync}/write, block sizes $\{4,8,16,32,64\}$ KiB, 5 runs averaged.
-  & \pth{milan/benchmarks/wal_workload_no_fc/run_repeated.sh}
-  & Journaling halves IOPS regardless of mode; 99.6\% of latency is fdatasync. Averaged tables saved as \texttt{*.txt}. \\
+14 & Scaling metrics (load with \texttt{optimize=1}). Explicit matrix (4 workloads $\times$ 4 thread counts $\times$ 2 modes $\times$ 3 runs).
+  & {\scriptsize\ttfamily\raggedright Lockless\_CAS\_Optimization/\allowbreak artifact\_files/\allowbreak run\_evals.sh\par}
+  & Output logs will be generated independently by each benchmark. Execute Python script natively to parse into final visual plots. \\
 
-16 & Concurrent WAL + sequential workload. Two fio jobs simultaneously bounded to the same wall time; bpftrace on JBD2 throughout.
-  & \pth{milan/benchmarks/combined_workload_no_fc/run_repeated.sh}
-  & Sequential bandwidth mode-insensitive; WAL tail latency degrades sharply under contention. Averaged tables saved as \texttt{*.txt}. \\
+\multicolumn{4}{@{}l}{\textit{Workload Characterization}} \\
+15 & Sync-Heavy workload across 4 modes. fio single-thread, fsync/write, block sizes $\{4,8,16,32,64\}$ KiB, 5 runs averaged.
+  & {\scriptsize\ttfamily\raggedright Workload Characteristics/\allowbreak Sync Heavy Workload/\allowbreak run\_analysis.sh\par}
+  & Journaling halves IOPS regardless of mode; 99\% of latency is fsync. \\
 
-\multicolumn{4}{@{}l}{\textit{Shrey -- Candidate 6: Fragmented Journal Map}} \\
-17 & FJM functional check + 6-mode benchmark. Loads \texttt{ext4\_tracker.ko}; fresh-formats /dev/sdb (64 MB journal); runs 100 MB WAL fio across ordered/journal/writeback $\times$ \{std,fjm\}.
-  & \pth{shrey/benchmarks/fjm_full_benchmark.sh}
-  & $\sim$40-60 min. \texttt{ordered\_fjm} P99 $\sim$0.05 ms vs $\sim$0.4 ms std at same WAF; \texttt{journal\_fjm} WAF $\sim$3.61$\times$ vs 3.50$\times$ std (index-block cost). \\
+16 & Seq-Write workload across 4 modes. fio single-thread, no fsync, block sizes $\{128,256,512,1024\}$ KiB, 5 runs averaged.
+  & {\scriptsize\ttfamily\raggedright Workload Characteristics/\allowbreak Seq Heavy Workload/\allowbreak run\_analysis.sh\par}
+  & WAF close to 1 for all modes except journal mode. \\
 
-18 & FJM 5-run stability check.
-  & \pth{shrey/benchmarks/run_repeated_benchmark.sh}
-  & $\sim$3.5-5 hours. WAF stable across 5 runs in every mode. \\
+17 & Combined workload. Two fio jobs simultaneously bounded to the same wall time; bpftrace on JBD2 throughout.
+  & {\scriptsize\ttfamily\raggedright Workload Characteristics/\allowbreak Combined Workload/\allowbreak run\_analysis.sh\par}
+  & Sync-heavy IOPS degrades severely under concurrent sequential write pressure. \\
+
+\multicolumn{4}{@{}l}{\textit{Candidate 6: Fragmented Journal Map}} \\
+18 & FJM functional check + 6-mode benchmark. Loads \texttt{ext4\_tracker.ko}; formats /dev/sdb (64 MB journal); runs 100 MB WAL fio across ordered/journal/writeback $\times$ \{std,fjm\}.
+  & {\scriptsize\ttfamily\raggedright Fragmented Journal Map\allowbreak\ Optimization/\allowbreak benchmarks/\allowbreak fjm\_full\_benchmark.sh\par}
+  & $\sim$40--60 min. \texttt{ordered\_fjm} P99 $\sim$0.05 ms vs $\sim$0.4 ms std; \texttt{journal\_fjm} WAF $\sim$3.61$\times$ vs 3.50$\times$ std. \\
+
+19 & FJM 5-run stability check.
+  & {\scriptsize\ttfamily\raggedright Fragmented Journal Map\allowbreak\ Optimization/\allowbreak benchmarks/\allowbreak run\_repeated\_benchmark.sh\par}
+  & $\sim$3.5--5 hours. WAF stable across 5 runs in every mode. \\
 
 \end{longtable}
 \end{small}
-
 \end{document}

@@ -1,0 +1,87 @@
+\contentsline {section}{\numberline {1}Introduction}{5}{section.1}%
+\contentsline {section}{\numberline {2}Workload Characterization}{6}{section.2}%
+\contentsline {section}{\numberline {3}Workload Characterisation}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Sync-Heavy Small Writes Workload}{6}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Workload Description}{6}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Throughput and Latency}{6}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Impact of fsync}{7}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Physical Bytes and Write Amplification}{8}{subsubsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {3.1.5}JBD2 Commit Percentage of Benchmark Time}{9}{subsubsection.3.1.5}%
+\contentsline {subsubsection}{\numberline {3.1.6}Conclusion}{9}{subsubsection.3.1.6}%
+\contentsline {subsection}{\numberline {3.2}Sequential Write Workload}{9}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Workload Description}{9}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Throughput and Latency}{10}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Write Amplification and Commit Behaviour}{11}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Conclusion}{12}{subsubsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.3}Combined Workload}{12}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Throughput and Latency}{13}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Conclusion}{13}{subsubsection.3.3.2}%
+\contentsline {section}{\numberline {4}Optimization Candidates: Overview}{14}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Candidate selection methodology}{14}{subsection.4.1}%
+\contentsline {section}{\numberline {5}Candidates 1 and 2: Did Not Measure}{15}{section.5}%
+\contentsline {subsection}{\numberline {5.1}C1: fast-commit barrier deferral}{15}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}The developer TODO}{15}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}What we implemented}{15}{subsubsection.5.1.2}%
+\contentsline {paragraph}{The hidden \texttt {j\_fc\_off} race we discovered.}{16}{Item.3}%
+\contentsline {subsubsection}{\numberline {5.1.3}Correctness analysis}{16}{subsubsection.5.1.3}%
+\contentsline {subsubsection}{\numberline {5.1.4}Why it did not work}{16}{subsubsection.5.1.4}%
+\contentsline {subsection}{\numberline {5.2}C2: async bitmap prefetch completion}{17}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}The developer TODO}{17}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Three implementation shapes considered}{17}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Correctness analysis}{18}{subsubsection.5.2.3}%
+\contentsline {subsubsection}{\numberline {5.2.4}Bugs caught during code review}{18}{subsubsection.5.2.4}%
+\contentsline {paragraph}{Blocker 1 --- \texttt {static noinline\_for\_stack} orphaning.}{18}{subsubsection.5.2.4}%
+\contentsline {paragraph}{Blocker 2 --- resource leak on OOM in \texttt {ext4\_mb\_init}.}{18}{subsubsection.5.2.4}%
+\contentsline {paragraph}{Build-time issue --- forward declaration.}{18}{subsubsection.5.2.4}%
+\contentsline {subsubsection}{\numberline {5.2.5}Why it did not work}{19}{subsubsection.5.2.5}%
+\contentsline {paragraph}{Fallocate microbench --- no signal.}{19}{subsubsection.5.2.5}%
+\contentsline {paragraph}{VM variance discovery.}{19}{subsubsection.5.2.5}%
+\contentsline {paragraph}{Lesson.}{19}{subsubsection.5.2.5}%
+\contentsline {section}{\numberline {6}Candidate 3: Fast Commit Support for Inline xattrs}{20}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Intuition}{20}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Where xattrs live in ext4}{20}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Code analysis}{20}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Design and implementation}{21}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Correctness}{22}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Results}{22}{subsection.6.6}%
+\contentsline {paragraph}{VM (VirtualBox, 11th Gen Intel Core i7-11800H, 4 cores, 5.7 GiB RAM; 256 MB loop fs with \texttt {-O fast\_commit}; 5000 \texttt {fsetxattr}+\texttt {fsync} on a single inline-sized value).}{22}{subsection.6.6}%
+\contentsline {paragraph}{Bare-metal (11th Gen Intel Core i3-1115G4, 4 cores, 7.5 GiB RAM, real SATA SSD; 3 repeats).}{22}{subsection.6.6}%
+\contentsline {paragraph}{Non-xattr regression check.}{23}{subsection.6.6}%
+\contentsline {section}{\numberline {7}Candidate 4: Fast Commit Support for fallocate Range Operations}{23}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Intuition}{23}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Characterisation first}{23}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Code analysis}{24}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Design and implementation}{24}{subsection.7.4}%
+\contentsline {paragraph}{Replay correctness.}{25}{lstnumber.-6.9}%
+\contentsline {subsection}{\numberline {7.5}Correctness}{25}{subsection.7.5}%
+\contentsline {paragraph}{Compilation.}{25}{subsection.7.5}%
+\contentsline {paragraph}{Smoke test.}{25}{subsection.7.5}%
+\contentsline {paragraph}{Custom crash-recovery tests.}{25}{subsection.7.5}%
+\contentsline {paragraph}{xfstests subset.}{26}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Results}{26}{subsection.7.6}%
+\contentsline {paragraph}{VM (VirtualBox i7-11800H; 256~MB loop ext4 with \texttt {-O fast\_commit}; 1000 ops + per-op \texttt {fsync}; 3 runs per mode).}{26}{subsection.7.6}%
+\contentsline {paragraph}{Bare-metal (i3-1115G4, 4 cores, 7.5~GiB RAM, real SATA SSD; 3 repeats; baseline kernel \texttt {6.1.4-cs614-c3-patched}, patched kernel \texttt {6.1.4-cs614-c4-patched} with both C3 and C4 applied).}{26}{subsection.7.6}%
+\contentsline {paragraph}{Non-fallocate regression check.}{27}{subsection.7.6}%
+\contentsline {section}{\numberline {8}Discussion: Why C3 and C4 Worked Where C1 and C2 Did Not}{27}{section.8}%
+\contentsline {paragraph}{Why the wall-time gain is smaller than the commit-count gain.}{28}{section.8}%
+\contentsline {paragraph}{Scope limits and future work.}{28}{section.8}%
+\contentsline {section}{\numberline {9}Candidate 5: Lockless CAS for jbd2\_log\_wait\_commit}{28}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Analyzing the lock latency of JBD2}{28}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Identifying lock contention time}{29}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Mitigating lock contention with CAS synchronization}{30}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Benchmark evaluation and thread scaling}{31}{subsection.9.4}%
+\contentsline {section}{\numberline {10}Candidate 6: Fragmented Journal Map (FJM) for ext4}{36}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Conventional vs.\ fragmented journaling}{36}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Maintaining the journal and circular transaction sequence}{37}{subsection.10.2}%
+\contentsline {paragraph}{In-memory tracking.}{37}{subsection.10.2}%
+\contentsline {paragraph}{Circular enforcement via on-disk indexes.}{37}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Fragmented block occupation}{37}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Journal space efficiency}{38}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Redundancy of credit-based reservation}{38}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}Experiments}{38}{subsection.10.6}%
+\contentsline {paragraph}{Crash recovery.}{39}{subsection.10.6}%
+\contentsline {subsection}{\numberline {10.7}Reproduction}{39}{subsection.10.7}%
+\contentsline {section}{\numberline {11}Conclusion}{39}{section.11}%
+\contentsline {section}{\numberline {A}Artifact Evaluation}{41}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Artifact Directory Structure}{41}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Detailed Evaluation}{41}{subsection.A.2}%

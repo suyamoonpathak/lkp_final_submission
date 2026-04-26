@@ -95,7 +95,7 @@ if [ ! -x "$HELPER" ]; then
             || { echo "gcc build failed"; exit 1; }
     else
         echo "ERROR: fallocate_range_helper.c not found at $SCRIPT_DIR"
-        echo "git pull to fetch the latest suyamoon/ files."
+        echo "git pull to fetch the latest Fast_Commit_Optimization/ files."
         exit 1
     fi
 fi

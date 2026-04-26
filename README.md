@@ -267,7 +267,7 @@ contributions.
 - `declaration.txt` — group declaration
 - `project_report.pdf` — project report
 - `Fast_Commit_Optimization/`, `Lockless_CAS_Optimization/`, `Workload_Characteristics/`, `Fragmeted_Jounral_Map_Optimization/` — per-member artifacts
-- `combined_report/project_report.tex` — LaTeX source of the report
+- `project_report.tex` — LaTeX source of the report
 
 The Linux 6.1.4 kernel source tree is **not** in the ZIP (per
 artifact rubric — patches only). Download it from
