@@ -82,13 +82,15 @@ git apply /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/patches/S
 # 2. Extract the module source into fs/
 tar xzf /path/to/MTech\ Rocks/Fragmented\ Journal\ Map\ Optimization/module/ext4_tracker.tar.gz -C fs/
 
-# 3. Enable the module in menuconfig:
+# 3. Start from the current kernel config
+cp /boot/config-$(uname -r) .config
+make olddefconfig
+
+# 4. Enable the module in menuconfig:
 #    File systems -> "Ext4 TRACKER filesystem" -> M
 make menuconfig
 
-# 4. Build the kernel and the module
-cp /boot/config-$(uname -r) .config
-make olddefconfig
+# 5. Build the kernel and the module
 make -j$(nproc)
 sudo make modules_install
 sudo make install
