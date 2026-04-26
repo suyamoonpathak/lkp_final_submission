@@ -17,7 +17,7 @@ smaller on real storage.
 
 | Name | Path | Purpose |
 |---|---|---|
-| **REPO**       | `~/jbd2-project` | Our git repo — holds the patch, scripts, results |
+| **REPO**       | `"MTech Rocks"` | Our git repo — holds the patch, scripts, results |
 | **KERNEL_SRC** | `~/linux-6.1.4`  | Pristine Linux 6.1.4 source — patch applies and `make` runs here |
 
 Every command below has `# in REPO` or `# in KERNEL_SRC` — match
@@ -42,14 +42,14 @@ cd ~
 
 Pull the latest from our repo:
 ```bash
-cd ~/jbd2-project
+cd "MTech Rocks"
 git checkout master
 git pull
 ```
 
 Create your branch for C3 results:
 ```bash
-cd ~/jbd2-project
+cd "MTech Rocks"
 git checkout -b results-c3/milan
 ```
 
@@ -69,7 +69,7 @@ Run the benchmark:
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 sudo bash Fast_Commit_Optimization/eval_baremetal_c3.sh
 ```
 
@@ -81,7 +81,7 @@ Results save to `Fast_Commit_Optimization/eval_results_c3/baremetal/STOCK_<kerne
 Commit and push right away:
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 git add Fast_Commit_Optimization/eval_results_c3/baremetal/
 git commit -m "milan: c3 stock baseline"
 git push -u origin results-c3/milan
@@ -104,7 +104,7 @@ git status --short 2>/dev/null || \
 # For a truly clean start, re-extract if needed:
 # cd ~ && rm -rf linux-6.1.4 && tar xf linux-6.1.4.tar.xz && cd linux-6.1.4
 
-patch -p1 < ~/jbd2-project/Fast_Commit_Optimization/fc-inline-xattr.patch
+patch -p1 < "MTech Rocks"/Fast_Commit_Optimization/fc-inline-xattr.patch
 # Expected: "patching file fs/ext4/fast_commit.c"
 #           "patching file fs/ext4/xattr.c"
 
@@ -181,7 +181,7 @@ sudo reboot
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 sudo bash Fast_Commit_Optimization/eval_baremetal_c3.sh
 ```
 
@@ -200,7 +200,7 @@ Three focused crash-recovery tests (~30 seconds total):
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 sudo bash Fast_Commit_Optimization/c3_crash_test_a.sh   # 100 inline xattrs → crash → all must recover
 sudo bash Fast_Commit_Optimization/c3_crash_test_b.sh   # set 100, remove 50 → crash → exactly 50 remain
 sudo bash Fast_Commit_Optimization/c3_crash_test_c.sh   # 500-byte block xattr → crash → full value recovered
@@ -215,7 +215,7 @@ output and let Suyamoon know before pushing benchmark results.
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 git add Fast_Commit_Optimization/eval_results_c3/baremetal/
 git commit -m "milan: c3 patched results"
 git push origin results-c3/milan

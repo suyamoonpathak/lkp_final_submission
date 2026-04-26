@@ -2,7 +2,7 @@
 # EXT4 FASTCOMMIT INLINE XATTR — Bare-metal Evaluation Script (Candidate 3)
 #
 # Patch: Fast_Commit_Optimization/fc-inline-xattr.patch
-# Spec:  docs/superpowers/specs/2026-04-23-ext4-fastcommit-inline-xattr-design.md
+# Design: Fast_Commit_Optimization/CANDIDATE3_results.md
 # Results writeup: Fast_Commit_Optimization/CANDIDATE3_results.md
 #
 # Run TWICE:

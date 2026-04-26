@@ -365,8 +365,7 @@ We handed off to Milan and Sahil for bare-metal measurement.
 - `Fast_Commit_Optimization/eval_milan_c2.sh`, `eval_sahil_c2.sh` — per-contributor bare-metal scripts
 - `Fast_Commit_Optimization/INSTRUCTIONS_MILAN_C2.md`, `INSTRUCTIONS_SAHIL_C2.md` — end-to-end walkthroughs
 - `Fast_Commit_Optimization/eval_results_c2/` — VM numbers (null result, preserved for comparison)
-- `docs/superpowers/specs/2026-04-22-ext4-async-bitmap-prefetch-design.md` — design doc
-- `docs/superpowers/plans/2026-04-22-ext4-async-bitmap-prefetch.md` — implementation plan
+- `Fast_Commit_Optimization/CANDIDATE2_postmortem.md` — this document — design and evaluation writeup
 
 ### Awaiting
 

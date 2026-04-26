@@ -30,7 +30,8 @@ validate_journal() {
     # 2. Mount and load the traced kernel module
     sudo mount -o data=ordered $DEV $MNT
     sudo rmmod jbd2_trace 2>/dev/null || true
-    sudo insmod $MODULE_DIR/jbd2_trace.ko optimize=$OPT
+    DEV_NAME=${DEV#/dev/}
+    sudo insmod $MODULE_DIR/jbd2_trace.ko optimize=$OPT device=$DEV_NAME
 
     # 3. Aggressively stress the journal with thousands of immediate syncs
     echo "[*] Step 2: Stressing JBD2 journal with aggressive fsync workload..."

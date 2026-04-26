@@ -30,7 +30,7 @@ Fast_Commit_Optimization/
 ├── eval_baremetal_c3.sh                 ← bench orchestrator for C3
 ├── eval_baremetal_c4.sh                 ← bench orchestrator for C4
 │
-├── bench_xattr.sh                       ← C3 microbench (1000 setxattr+fsync)
+├── bench_xattr.sh                       ← C3 microbench (5000 setxattr+fsync, default N=5000)
 ├── xattr_fsync_helper.c                 ← per-op fsync helper for C3 bench
 ├── bench_fallocate_range.sh             ← C4 microbench
 ├── fallocate_range_helper.c             ← per-op fsync helper for C4 bench
@@ -44,8 +44,8 @@ Fast_Commit_Optimization/
 │
 ├── eval_results_c3/                     ← C3 raw bench output (VM + bare-metal, stock + patched)
 ├── eval_results_c4/                     ← C4 raw bench output
-├── xfstests_c3/                         ← C3 xfstests output
-├── xfstests_c4/                         ← C4 xfstests output
+├── xfstests_c3/                         ← C3 xfstests output (patched kernel only; generic/473 also fails on stock 6.1.4)
+├── xfstests_c4/                         ← C4 xfstests output (patched kernel only; same generic/473 pre-existing failure)
 ├── CANDIDATE3_results.md                ← C3 writeup with all numbers
 ├── CANDIDATE4_results.md                ← C4 writeup with all numbers
 │
@@ -54,7 +54,7 @@ Fast_Commit_Optimization/
 ├── bench_xattr_block.sh                 ← characterization bench: xattr block path
 ├── concurrent_fsync_helper.c
 ├── xattr_block_fsync_helper.c
-├── build_char_helpers.sh                ← compiles all three C helpers
+├── build_char_helpers.sh                ← compiles all four C helpers (xattr_fsync, fallocate_range, xattr_block, concurrent_fsync)
 ├── run_c4_characterization.sh
 ├── char_results/                        ← raw output of characterization runs
 ├── compare_results.py

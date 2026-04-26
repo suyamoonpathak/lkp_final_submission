@@ -20,10 +20,12 @@ workloads:
    modes, forcing both workloads to contend for journal resources
    concurrently.
 
-All harnesses run each journaling mode N times (configurable), attach
-`blktrace` to capture physical write bytes, and optionally attach
-`bpftrace` (`trace_jbd2.bt`) to capture per-commit JBD2 events. Results
-are written per run and aggregated by `analyse_results.py`.
+The Sync Heavy and Sequential Write harnesses run each journaling mode N
+times (configurable), attach `blktrace` to capture physical write bytes,
+and optionally attach `bpftrace` (`trace_jbd2.bt`) to capture per-commit
+JBD2 events. Results are written per run and aggregated by
+`analyse_results.py`. The Combined Workload measures throughput and latency
+only — it does not use `blktrace` and does not report WAF.
 
 Fast commit was deliberately **off** for these runs to characterize
 the baseline JBD2 cost.

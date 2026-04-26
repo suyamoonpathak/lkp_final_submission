@@ -136,7 +136,7 @@ make -j$(nproc) M=fs/jbd2
 
 ```bash
 # Load the existing probe module
-sudo insmod /home/lkp-ubuntu/Downloads/jbd2_probe_module/jbd2_probe.ko
+sudo insmod /path/to/jbd2_probe.ko
 
 # Run a concurrent fsync workload
 sudo fio --name=test --directory=/mnt/testfs \

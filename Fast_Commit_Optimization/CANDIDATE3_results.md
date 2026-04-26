@@ -144,27 +144,18 @@ short `user.*` attrs use).
 | `Fast_Commit_Optimization/c3_crash_test_b.sh` | Crash-recovery: set-100-remove-50 → exactly 50 remain. |
 | `Fast_Commit_Optimization/c3_crash_test_c.sh` | Crash-recovery: 500-byte block xattr must survive (full-commit fallback works). |
 | `Fast_Commit_Optimization/eval_results_c3/` | Raw benchmark output. |
-| `docs/superpowers/specs/2026-04-23-ext4-fastcommit-inline-xattr-design.md` | Design spec. |
-| `docs/superpowers/plans/` + `/home/lkp-ubuntu/.claude/plans/i-am-doing-cs614-wobbly-karp.md` | Implementation plan. |
+| `Fast_Commit_Optimization/CANDIDATE3_results.md` | This document — full design and evaluation writeup. |
 
 ---
 
-## 8. Next steps
+## 8. Follow-on work (not in scope for this submission)
 
-1. **Get bare-metal numbers.** Re-run on bare-metal with updated
-   instructions (`INSTRUCTIONS_*_C3.md`) pointing at the C3 patch, the
-   C3 benchmark, and LOCALVERSION `-cs614-c3-patched`. Expect larger
-   wall-time speedup on NVMe/SATA SSD than our VM showed.
-2. **Full xfstests.** Run `xfstests -g quick` + the xattr/fc-focused
-   subset (`generic/062, 118, 300, 337, 388, 454, 455, 473, 482;
-   ext4/032, 042, 043`) on the patched kernel. Must be clean before
-   any upstream proposal.
-3. **Write paper evaluation section** using these numbers plus bare-metal.
-4. **(Optional) Follow-on patch for block xattrs** — adds new
-   FC_TAG_XATTR_SET / FC_TAG_XATTR_DEL tag types + compat bit +
-   replay support. Covers the remaining ~10% of xattr operations that
-   still force full commit today. Substantially more work; separate
-   project.
+1. **Follow-on patch for block xattrs** — adds new FC_TAG_XATTR_SET /
+   FC_TAG_XATTR_DEL tag types + compat bit + replay support. Covers the
+   remaining ~10% of xattr operations that still force full commit today.
+   Substantially more work; separate project.
+2. **Upstream proposal** — submit to ext4/linux-kernel mailing lists after
+   xfstests runs clean on a wider test matrix.
 
 ---
 

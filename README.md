@@ -24,7 +24,7 @@ Contribution percentages are in `declaration.txt`.
 MTech Rocks/
 ├── README.md                              ← this file
 ├── declaration.txt                        ← group declaration + per-member contribution %
-├── Project_Report.pdf                     ← project report (covers all four members' work)
+├── project_report.pdf                     ← project report (covers all four members' work)
 ├── project_report.tex                     ← LaTeX source of the project report
 │
 ├── Fast_Commit_Optimization/
@@ -239,7 +239,8 @@ the kernel, plus a build of Lockless_CAS_Optimization module.
    ls "MTech Rocks/Lockless_CAS_Optimization/artifact_files/benchmark_results/" | head
    cat "MTech Rocks/Lockless_CAS_Optimization/artifact_files/artifact_ans/dmesg_logs/"*.txt | head -30
 
-   
+   # Fragmented Journal Map (FJM)
+   tail -20 "MTech Rocks/Fragmeted_Jounral_Map_Optimization/results/logs/result_repeated_runs.log"
    ```
 
 5. **Read the per-member detail.** Each subfolder's `README.md` has

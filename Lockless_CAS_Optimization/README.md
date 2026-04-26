@@ -15,7 +15,10 @@ Lockless_CAS_Optimization/
     ├── run_evals.sh                 ← Executable multi-threaded scaling arrays (FIO, Sysbench, fs_mark, dbench)
     ├── master_runner.sh             ← Automated suite script
     ├── plot_results.py              ← Reads array logs dynamically to visually render clustered bar-charts
-    ├── benchmark_results/           ← Output directory where your raw data logs are securely saved
+    ├── benchmark_results/           ← Pre-shipped result logs (fio/sysbench/fsmark/dbench per mode×threads×run).
+    │                                   Some entries also contain *_herd.json, *_meta.json, *_seq.json — these
+    │                                   are additional fio workload measurements from an earlier evaluation run
+    │                                   and are not required by plot_results.py or run_evals.sh.
     └── optimization_results.png     ← Final generated metric graphics chart output
 ```
 

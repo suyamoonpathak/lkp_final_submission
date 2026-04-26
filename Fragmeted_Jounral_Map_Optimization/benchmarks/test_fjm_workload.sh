@@ -16,8 +16,8 @@ mkdir -p $MNT
 # Clear dmesg log buffer before mount so we capture mount initialization FJM logs
 sudo dmesg -c > /dev/null
 
-# Mount using the custom ext4_mod type and our new fragmented journal mount option!
-sudo mount -t ext4_mod -o fjm $DEVICE $MNT
+# Mount using the custom ext4_tracker type and our new fragmented journal mount option!
+sudo mount -t ext4_tracker -o fjm $DEVICE $MNT
 echo "ext4 mounted on $MNT with FJM enabled"
 
 echo "=== Running Heavy & Diverse FJM Workload on $DEVICE ==="

@@ -25,7 +25,7 @@ ran them on the VM. Just the benchmark.
 
 | Name | Path | Purpose |
 |---|---|---|
-| **REPO**       | `~/jbd2-project` | Our git repo — holds the patch and bench |
+| **REPO**       | `"MTech Rocks"` | Our git repo — holds the patch and bench |
 | **KERNEL_SRC** | `~/linux-6.1.4`  | Linux 6.1.4 source — the one you used for C3 |
 
 ---
@@ -34,7 +34,7 @@ ran them on the VM. Just the benchmark.
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 git checkout master
 git pull
 ```
@@ -55,7 +55,7 @@ So: stay on whatever you're booted into (stock, C3, whatever), and run:
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 uname -r   # any 6.1.4-* except the one you'll build in step 2
 sudo bash Fast_Commit_Optimization/eval_baremetal_c4.sh
 ```
@@ -70,7 +70,7 @@ Push right away so we have it on record:
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 git checkout -b results-c4/milan
 git add Fast_Commit_Optimization/eval_results_c4/baremetal/
 git commit -m "milan: c4 baseline (C3-kernel, arch-equivalent to stock for fallocate)"
@@ -89,7 +89,7 @@ cd ~/linux-6.1.4
 # If you want a C4-only kernel (no C3), re-extract the pristine
 # tarball first. For a combined C3+C4 kernel, keep C3 applied.
 
-patch -p1 < ~/jbd2-project/Fast_Commit_Optimization/fc-fallocate-range.patch
+patch -p1 < "MTech Rocks"/Fast_Commit_Optimization/fc-fallocate-range.patch
 # Expected: "patching file fs/ext4/extents.c"
 
 # Verify the patch applied
@@ -169,7 +169,7 @@ sudo reboot
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 sudo bash Fast_Commit_Optimization/eval_baremetal_c4.sh
 ```
 
@@ -189,7 +189,7 @@ Three short tests (~45 seconds total):
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 sudo bash Fast_Commit_Optimization/c4_crash_test_a.sh   # collapse 32 blocks → crash → verify md5+size
 sudo bash Fast_Commit_Optimization/c4_crash_test_b.sh   # insert 16 blocks  → crash → verify md5+size
 sudo bash Fast_Commit_Optimization/c4_crash_test_c.sh   # interleaved collapse/insert → crash → verify
@@ -204,7 +204,7 @@ output and ping Suyamoon before pushing benchmark results.
 
 ```bash
 # in REPO
-cd ~/jbd2-project
+cd "MTech Rocks"
 git add Fast_Commit_Optimization/eval_results_c4/baremetal/
 git commit -m "milan: c4 patched results"
 git push origin results-c4/milan

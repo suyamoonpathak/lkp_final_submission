@@ -88,6 +88,8 @@ make olddefconfig
 
 # 4. Enable the module in menuconfig:
 #    File systems -> "Ext4 TRACKER filesystem" -> M
+#    NOTE: First.patch also adds a dead "Ext4 MOD filesystem" entry in
+#    menuconfig. Leave it disabled (=n). Only EXT4_TRACKER_FS is needed.
 make menuconfig
 
 # 5. Build the kernel and the module
@@ -106,6 +108,20 @@ sudo bash fjm_full_benchmark.sh             # ~4-6 minutes, 6 modes
 # or for stability:
 sudo bash run_repeated_benchmark.sh 5       # ~20-30 minutes
 ```
+
+## Notes on pre-shipped benchmark logs
+
+The single-run logs in `results/logs/full_benchmark1/2/3.log` were produced
+when the module was registered as `ext4_mod` (an earlier development name).
+The module is now registered as `ext4_tracker`; `fjm_full_benchmark.sh` mounts
+with `-t ext4_tracker`. The functionality and the measured numbers are identical
+— only the filesystem-type label in the mount line changed.
+
+`full_benchmark3.log` shows `FJM events — Freed: 0` for all three FJM runs.
+This indicates the module was not active (or dmesg was not cleared) during that
+single run. The 5-run averages in `result_repeated_runs.log` are drawn from the
+other four runs where FJM was confirmed active, and the WAF figures are stable
+across all five runs regardless.
 
 ## Headline numbers (5-run average, 100 MB WAL workload, fio fsync=1)
 

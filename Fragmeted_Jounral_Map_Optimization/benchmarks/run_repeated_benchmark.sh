@@ -1,7 +1,7 @@
 #!/bin/bash
 # run_repeated_benchmark.sh
 #
-# Runs full_benchmark.sh N times (default 5) and prints ONLY the
+# Runs fjm_full_benchmark.sh N times (default 5) and prints ONLY the
 # Results Comparison table from each run. All other benchmark output
 # is silenced. 
 #
@@ -14,11 +14,11 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BENCHMARK_SCRIPT="$SCRIPT_DIR/full_benchmark.sh"
+BENCHMARK_SCRIPT="$SCRIPT_DIR/fjm_full_benchmark.sh"
 N="${1:-5}"   # number of repetitions, default 5
 
 if [ ! -f "$BENCHMARK_SCRIPT" ]; then
-    echo "ERROR: full_benchmark.sh not found at $BENCHMARK_SCRIPT"
+    echo "ERROR: fjm_full_benchmark.sh not found at $BENCHMARK_SCRIPT"
     exit 1
 fi
 
