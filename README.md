@@ -31,7 +31,7 @@ MTech Rocks/
 │   └── README.md                          ← C3 + C4 fast-commit extensions, patches, benches, results
 │
 ├── Lockless CAS Optimization/
-│   └── README.md                          ← Lockless CAS module, benchmark script , fsck validation
+│   └── README.md                          ← Lockless CAS module, benchmark script , journalling validation
 │
 ├── Workload Characteristics/
 │   └── README.md                          ← per-mode JBD2 characterization, fio + bpftrace
