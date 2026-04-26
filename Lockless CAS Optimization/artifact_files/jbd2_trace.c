@@ -24,7 +24,7 @@ module_param(device, charp, 0444);
 static int optimize = 0;
 module_param(optimize, int, 0444);
 
-/* ── helpers ── */
+//helpers 
 struct ts_data { u64 start; };
 
 struct probe_cnt {
@@ -45,7 +45,7 @@ static void do_max(atomic64_t *v, s64 n)
 static void do_min(atomic64_t *v, s64 n)
 { s64 o; do { o=atomic64_read(v); if(o&&n>=o)return; } while(atomic64_cmpxchg(v,o,n)!=o); }
 
-/* ── OPTIMIZATION LOGIC ── */
+//OPTIMIZATION LOGIC
 static atomic64_t opt_count    = ATOMIC64_INIT(0);
 static atomic64_t opt_total_ns = ATOMIC64_INIT(0);
 static atomic64_t opt_max_ns   = ATOMIC64_INIT(0);
@@ -100,7 +100,7 @@ static int __kprobes jbd2_lwc_handler(struct kprobe *p, struct pt_regs *regs)
 	return 1;
 }
 
-/* ── custom fsync tracker for accurate workload timing ── */
+// custom fsync tracker for accurate workload timing
 static struct probe_cnt p_fsync;
 static int entry_fsync(struct kretprobe_instance *ri, struct pt_regs *regs) {
 	u64 now;
@@ -133,7 +133,7 @@ static struct probe_cnt p_fsync = {
 	         .entry_handler = entry_fsync, .data_size = sizeof(struct ts_data), .maxactive = 64 }
 };
 
-/* ── generic dev filter handlers ── */
+// generic dev filter handlers
 static int entry_journal(struct kretprobe_instance *ri, struct pt_regs *regs)
 {
 	struct ts_data *d;
@@ -185,7 +185,7 @@ static int entry_comm(struct kretprobe_instance *ri, struct pt_regs *regs)
 	return 0;
 }
 
-/* ── kretprobe macro ── */
+// kretprobe macro
 #define DEFINE_PROBE(VAR, SYM, LABEL, SEC, LOCKNAME, MAXACT, ENTRY_FN)    \
 static struct probe_cnt VAR;                                               \
 static int VAR##_ret(struct kretprobe_instance *ri, struct pt_regs *r) {   \
@@ -204,7 +204,7 @@ static struct probe_cnt VAR = {                                            \
 	         .maxactive = MAXACT }                                     \
 }
 
-/* ═══ FSYNC PATH probes ═══ */
+// FSYNC PATH probes
 DEFINE_PROBE(p_writewait, "file_write_and_wait_range",
 	"file_write_and_wait_range","PATH", NULL, 64, entry_file);
 DEFINE_PROBE(p_waitcmt,   "jbd2_log_wait_commit",
@@ -214,7 +214,7 @@ DEFINE_PROBE(p_commit,    "jbd2_journal_commit_transaction",
 DEFINE_PROBE(p_flush,     "blkdev_issue_flush",
 	"blkdev_issue_flush",       "PATH", NULL, 64, entry_comm);
 
-/* ═══ LOCK probes ═══ */
+// LOCK probes
 DEFINE_PROBE(p_starthdl,  "start_this_handle",
 	"start_this_handle",        "LOCK", "j_state_lock",  64, entry_journal);
 DEFINE_PROBE(p_stop,      "jbd2_journal_stop",
@@ -232,7 +232,7 @@ static struct probe_cnt *all[] = {
 
 static u64 trace_start_time;
 
-/* ═══ Init ═══ */
+// Init
 static int __init jbd2_trace_init(void)
 {
 	int i, ok = 0, ret;
@@ -248,12 +248,12 @@ static int __init jbd2_trace_init(void)
 		device[0] ? device : "(all)", optimize,
 		optimize ? "lockless wait" : "baseline");
 
-	/* Custom init for p_fsync */
+	// Custom init for p_fsync
 	ret = register_kretprobe(&p_fsync.krp);
 	if (ret < 0) pr_warn("jbd2_trace: SKIP ext4_sync_file err=%d\n", ret);
 	else p_fsync.registered = 1;
 
-	/* Register all kretprobes */
+	// Register all kretprobes
 	for (i = 0; i < N; i++) {
 		if (optimize && all[i] == &p_waitcmt)
 			continue;
@@ -264,7 +264,7 @@ static int __init jbd2_trace_init(void)
 		else { all[i]->registered = 1; ok++; }
 	}
 
-	/* Register optimizer if enabled */
+	// Register optimizer if enabled
 	if (optimize) {
 		waitcmt_kp.symbol_name = "jbd2_log_wait_commit";
 		waitcmt_kp.pre_handler = jbd2_lwc_handler;
@@ -278,7 +278,7 @@ static int __init jbd2_trace_init(void)
 	return 0;
 }
 
-/* ═══ Exit — unified report ═══ */
+// Exit
 static void __exit jbd2_trace_exit(void)
 {
 	int i;
@@ -328,7 +328,7 @@ static void __exit jbd2_trace_exit(void)
 			(long long)(atomic64_read(&all[i]->min_ns)/1000), (long long)(atomic64_read(&all[i]->max_ns)/1000));
 	}
 
-	/* Aggregate lock time over all tracking lock hooks (hiding the count table) */
+	// Aggregate lock time over all tracking lock hooks
 	for (i = 0; i < N; i++) {
 		if (strcmp(all[i]->section, "LOCK")) continue;
 		lock_total_ns += atomic64_read(&all[i]->total_ns);
