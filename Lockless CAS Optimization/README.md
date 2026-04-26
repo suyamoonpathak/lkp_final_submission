@@ -33,7 +33,7 @@ Before launching natively, strictly identify your physical NVMe drive boundary a
 Open your standard bash terminal and navigate inside our bundled artifact footprint.
 ```bash
 cd "artifact_files/"
-make clean && make
+sudo make
 ```
 *(Safely verify that the `jbd2_trace.ko` kernel object successfully compiled).*
 
