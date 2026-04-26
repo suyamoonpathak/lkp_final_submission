@@ -5,7 +5,7 @@ This repository implements a lightweight, lockless double-checked Compare-And-Sw
 ## Artifact Folder Structure
 
 ```text
-Lockless CAS Optimization/
+Lockless_CAS_Optimization/
 ├── README.md                        ← This execution overview
 └── artifact_files/
     ├── jbd2_trace.c                 ← Target kernel module with the custom CAS proxy logic
