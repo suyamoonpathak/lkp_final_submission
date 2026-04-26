@@ -22,24 +22,22 @@ Contribution percentages are in `declaration.txt`.
 
 ```
 MTech Rocks/
-├── README.md                  ← this file
-├── declaration.txt            ← group declaration + per-member contribution %
-├── project_report.pdf         ← project report (covers all four members' work)
+├── README.md                              ← this file
+├── declaration.txt                        ← group declaration + per-member contribution %
+├── Project_Report.pdf                     ← project report (covers all four members' work)
+├── project_report.tex                     ← LaTeX source of the project report
 │
-├── Fast Commit Optimization/  
-│   └── README.md              ← C3 + C4 fast-commit extensions, patches, benches, results
+├── Fast Commit Optimization/
+│   └── README.md                          ← C3 + C4 fast-commit extensions, patches, benches, results
 │
-├── Lockless CAS Optimization/ 
-│   └── README.md              ← Lockless CAS module, scaling matrix, fsck validation
+├── Lockless CAS Optimization/
+│   └── README.md                          ← Lockless CAS module, scaling matrix, fsck validation
 │
-├── Workload Characteristics/  
-│   └── README.md              ← Per-mode JBD2 characterization, fio + bpftrace
+├── Workload Characteristics/
+│   └── README.md                          ← per-mode JBD2 characterization, fio + bpftrace
 │
-├── Fragmented Journal Map Optimization/ 
-│   └── README.md              ← FJM module + JBD2 patches + WAL benchmark suite
-│
-└── combined_report/           ← LaTeX source of project_report.pdf
-    └── project_report.tex
+└── Fragmeted Jounral Map Optimization/
+    └── README.md                          ← FJM module + JBD2 patches + WAL benchmark suite
 ```
 
 Each per-member folder has its own `README.md` that lists what is
