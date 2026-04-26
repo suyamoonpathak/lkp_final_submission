@@ -40,8 +40,8 @@ read -rp "  Block sizes, space-separated, suffix k/m/g required (default: 4k 8k 
 BS_INPUT="${BS_INPUT:-4k 8k 16k 32k 64k}"
 read -ra BLOCK_SIZES <<< "$BS_INPUT"
 
-read -rp "  Number of repeated runs N (default: 10): " N_INPUT
-N_INPUT="${N_INPUT:-10}"
+read -rp "  Number of repeated runs N (default: 5): " N_INPUT
+N_INPUT="${N_INPUT:-5}"
 if ! [[ "$N_INPUT" =~ ^[1-9][0-9]*$ ]]; then
     echo "ERROR: N must be a positive integer."
     exit 1
