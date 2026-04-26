@@ -109,7 +109,7 @@ Lockless CAS Optimization module is built **out-of-tree against any installed Li
 
 ```bash
 sudo apt install -y linux-headers-$(uname -r)
-cd "MTech Rocks/Lockless CAS Optimization/artifact_file"
+cd "MTech Rocks/Lockless CAS Optimization/artifact_files"
 make clean && make                     # produces jbd2_trace.ko
 ```
 
@@ -215,7 +215,7 @@ the kernel, plus a build of Lockless CAS Optimization module.
 3. **Build Lockless CAS Optimization module against your running kernel.**
 
    ```bash
-   cd ../"MTech Rocks/Lockless CAS Optimization/module"
+   cd "MTech Rocks/Lockless CAS Optimization/artifact_files"
    sudo apt install -y linux-headers-$(uname -r)
    make clean && make
    ```
@@ -232,8 +232,8 @@ the kernel, plus a build of Lockless CAS Optimization module.
    cat "MTech Rocks/Fast Commit Optimization/eval_results_c4/baremetal/PATCHED_C4_6.1.4-C3C4Patch/collapse_summary.txt"
 
    # Lockless CAS Optimization
-   ls "MTech Rocks/Lockless CAS Optimization/results/benchmark_results/" | head
-   cat "MTech Rocks/Lockless CAS Optimization/results/dmesg_logs/"*.txt | head -30
+   ls "MTech Rocks/Lockless CAS Optimization/artifact_files/benchmark_results/" | head
+   cat "MTech Rocks/Lockless CAS Optimization/artifact_files/artifact_ans/dmesg_logs/"*.txt | head -30
 
    
    ```
