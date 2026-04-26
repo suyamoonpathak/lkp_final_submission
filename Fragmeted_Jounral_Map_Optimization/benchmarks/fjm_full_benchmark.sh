@@ -183,8 +183,8 @@ run_one() {
 
     # Save FJM dmesg for this run
     dmesg | grep "FJM:" > "$RESULTS_DIR/fjm_dmesg_${LABEL}.txt" 2>/dev/null
-    local FREED=$(grep -c "FJM: Freed" "$RESULTS_DIR/fjm_dmesg_${LABEL}.txt" 2>/dev/null || echo 0)
-    local COMMITTED=$(grep -c "FJM: committed" "$RESULTS_DIR/fjm_dmesg_${LABEL}.txt" 2>/dev/null || echo 0)
+    local FREED; FREED=$(grep -c "FJM: Freed" "$RESULTS_DIR/fjm_dmesg_${LABEL}.txt" 2>/dev/null) || FREED=0
+    local COMMITTED; COMMITTED=$(grep -c "FJM: committed" "$RESULTS_DIR/fjm_dmesg_${LABEL}.txt" 2>/dev/null) || COMMITTED=0
     echo "  FJM events — Freed: $FREED  Committed: $COMMITTED"
 
     umount "$MOUNT_POINT"
@@ -269,8 +269,8 @@ echo "------------------------------------------------------------"
 for LABEL in ordered_fjm journal_fjm writeback_fjm; do
     DMESG="$RESULTS_DIR/fjm_dmesg_${LABEL}.txt"
     if [ -f "$DMESG" ]; then
-        FREED=$(grep -c "FJM: Freed" "$DMESG" 2>/dev/null || echo 0)
-        COMMITTED=$(grep -c "FJM: committed" "$DMESG" 2>/dev/null || echo 0)
+        FREED=$(grep -c "FJM: Freed" "$DMESG" 2>/dev/null) || FREED=0
+        COMMITTED=$(grep -c "FJM: committed" "$DMESG" 2>/dev/null) || COMMITTED=0
         IDX_BLOCKS=$(grep "FJM: initialised" "$DMESG" | grep -oP 'index_blocks=\K[0-9]+' | tail -1)
         printf "  %-18s  Freed=%-6s Committed=%-6s IndexBlocks=%s\n" \
             "$LABEL" "$FREED" "$COMMITTED" "${IDX_BLOCKS:-N/A}"

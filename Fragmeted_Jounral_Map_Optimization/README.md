@@ -28,8 +28,8 @@ Fragmeted_Jounral_Map_Optimization/
 ├── benchmarks/
 │   ├── fjm_full_benchmark.sh            ← single full benchmark across 6 modes
 │   ├── run_repeated_benchmark.sh        ← N-run wrapper for stability check
-│   ├── wal_workload.fio                 ← fio WAL job (100 MB, fsync per write)
-│   └── README.me                        ← workload notes
+│   ├── test_fjm_workload.sh             ← functional diversity stress test
+│   └── wal_workload.fio                 ← fio WAL job (100 MB, fsync per write)
 ├── results/
 │   └── logs/                            ← raw benchmark logs (single + 5-run aggregate)
 └── report_src/

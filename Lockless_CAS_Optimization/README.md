@@ -31,9 +31,15 @@ Before launching natively, strictly identify your physical NVMe drive boundary a
 
 ### Step 2: Native Compilation
 Open your standard bash terminal and navigate inside our bundled artifact footprint.
+
+> **Note:** The Linux kernel build system does not support spaces in the module
+> path. Because this artifact lives under `MTech Rocks/`, copy it to a
+> space-free location before running `make`:
+
 ```bash
-cd "artifact_files/"
-sudo make
+cp -r "$(pwd)/artifact_files" /tmp/jbd2_build
+cd /tmp/jbd2_build
+sudo make clean && sudo make
 ```
 *(Safely verify that the `jbd2_trace.ko` kernel object successfully compiled).*
 
@@ -68,6 +74,9 @@ sudo ./run_evals.sh
 Use the python script to parse the output logs and generate the plot graphs.
 
 ```bash
+# Ensure matplotlib and numpy are installed (run_evals.sh installs them
+# automatically; if running standalone, install manually first):
+sudo apt install -y python3-matplotlib python3-numpy
 python3 plot_results.py
 ```
 - Our native script dynamically reads all generated `.json` and `.txt` metrics physically saved within the `benchmark_results/` container logically, and parses them cleanly into `optimization_results.png` directly inside your folder!

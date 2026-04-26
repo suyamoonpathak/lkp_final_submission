@@ -109,8 +109,10 @@ Lockless_CAS_Optimization module is built **out-of-tree against any installed Li
 
 ```bash
 sudo apt install -y linux-headers-$(uname -r)
-cd "MTech Rocks/Lockless_CAS_Optimization/artifact_files"
-make clean && make                     # produces jbd2_trace.ko
+# The Linux kernel build system does not support spaces in the module
+# path. Copy to a space-free location before running make:
+cp -r "MTech Rocks/Lockless_CAS_Optimization/artifact_files" /tmp/jbd2_build
+cd /tmp/jbd2_build && make clean && make   # produces jbd2_trace.ko
 ```
 
 
@@ -215,9 +217,11 @@ the kernel, plus a build of Lockless_CAS_Optimization module.
 3. **Build Lockless_CAS_Optimization module against your running kernel.**
 
    ```bash
-   cd "MTech Rocks/Lockless_CAS_Optimization/artifact_files"
    sudo apt install -y linux-headers-$(uname -r)
-   make clean && make
+   # The Linux kernel build system does not support spaces in the path.
+   # Copy to a space-free location first:
+   cp -r "MTech Rocks/Lockless_CAS_Optimization/artifact_files" /tmp/jbd2_build
+   cd /tmp/jbd2_build && make clean && make
    ```
 
    Expected: `jbd2_trace.ko` produced. ~30 s.
